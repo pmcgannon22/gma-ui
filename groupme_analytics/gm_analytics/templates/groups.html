@@ -1,0 +1,16 @@
+{% extends "index.html" %}
+
+{% block title %}Groups{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="list-group col-md-4 col-centered">
+    <h2 class="text-center">Choose a Group</h2>
+    {% for group in groups %}
+    <a href="group/{{ group.id }}" class="list-group-item">
+      <h5 class="list-group-item-heading">{{ group.name }}</h5>
+    </a>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

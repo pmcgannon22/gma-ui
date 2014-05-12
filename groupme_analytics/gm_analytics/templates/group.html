@@ -1,0 +1,44 @@
+{% extends "index.html" %}
+{% load filters %}
+{% block title %}{{ group_info.name }}{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="row">
+    <div class="col-md-7">
+      <h3>{{ group_info.name }}</h3>
+      <img id="group-photo" src="{{ group_info.image_url }}">
+    </div>
+
+    <div class="members col-md-4">
+      <h4>Members ({{ group_info.members|length }})</h4>
+      <h6><em>total msgs | likes rec/given | ratio</em></h6>
+        <div class="list-group">
+        {% for member in group_info.members %}
+          <span class="list-group-item">
+    	  <h6>{{ member.nickname }}</h6>
+    	     <span class="list-group-item-text">
+    	            <small class="total-messages">Total Messages: {{ group.analysis.msgs_per|get_item:member.user_id }} | </small>
+    	            <small>{{ group.analysis.likes_rec|get_item:member.user_id }}/{{ group.analysis.likes_give|get_item:member.user_id }} | </small>
+    	            <small>{{ group.analysis.ratio|get_item:member.user_id|floatformat:3}}</small>
+            </span>
+         </span>
+         {% endfor %}
+        </div>
+    </div>
+</div>
+
+    <div class="row">
+        <div class="col-md-4">
+        <ol>
+            {% for key, value in group.analysis.prank|dictsort_val %}
+            <li>
+            {{ member_map|get_item:key }}: {{ value }}
+            </li>
+            {% endfor %}
+        </ol>
+    </div>
+    </div>
+</div>
+
+{% endblock %}

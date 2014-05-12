@@ -1,0 +1,41 @@
+{% extends "index.html" %}
+
+{% load staticfiles %}
+
+{% block extrahead %}
+<style>
+
+.node {
+  stroke: #fff;
+  stroke-width: 1.5px;
+}
+
+.link {
+  fill: none;
+  stroke: #999;
+  stroke-opacity: .6;
+}
+
+.edge-weight {
+    display: none;
+    font-size: 17px;
+    stroke: #FFF;
+    stroke-width: .25px;
+}
+</style>
+
+
+<script src="http://d3js.org/d3.v3.min.js"></script>
+{% endblock %}
+
+{% block content %}
+
+<div class="container">
+    <div class="row">
+        <div id="network"></div>
+    </div>
+</div>
+
+<script src="{% static "js/network.js" %}"></script>
+
+{% endblock %}

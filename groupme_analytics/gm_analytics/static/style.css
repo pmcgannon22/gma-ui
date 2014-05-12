@@ -1,0 +1,30 @@
+body > .container {
+     padding: 60px 15px 0;
+}
+
+.col-centered {
+  margin: 0 auto;
+  float:none;
+}
+
+#group-photo {
+  width: 100%;
+}
+
+.members {
+  margin-top: 50px;
+}
+
+.members .list-group {
+    height: 300px;
+    overflow-y: auto;
+    border-bottom: 1px solid #ddd;
+}
+
+.members .list-group-item {
+  padding: 5px 10px;
+}
+
+.members .list-group-item h6 {
+  margin: 2px 0;
+}

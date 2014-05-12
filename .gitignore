@@ -1,0 +1,6 @@
+*.py[cod]
+
+.DS_Store
+*.bak
+
+env/
