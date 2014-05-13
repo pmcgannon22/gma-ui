@@ -77,6 +77,7 @@ def groups(request):
 def group(request, id):
     c = {}
     group_info = get_group(request.session['token'], id)
+    group_info[u'created_at'] = datetime.fromtimestamp(int(group_info[u'created_at'])).strftime('%m/%d/%Y')
     try:
         group = Group.objects.get(id=id)
     except Group.DoesNotExist:
@@ -141,7 +142,7 @@ def get_graph_json(request, id):
     member_map = {member[u'user_id'] : (member[u'nickname'], member[u'image_url']) for member in group_info[u'members']}
     analysis = Group.objects.get(id=id).analysis
     graph = json.loads(analysis.like_network)
-    graph[u'nodes'] = [{u'id':n[u'id'], u'name':member_map[n[u'id']][0], u'img':member_map[n[u'id']][1]} 
+    graph[u'nodes'] = [{u'id':n[u'id'], u'name':member_map[n[u'id']][0], u'img':member_map[n[u'id']][1]}
                                 for n in graph[u'nodes']]
     #for edge in graph[u'links']:
     #    n_graph.append({'source':graph[u'nodes'][edge[u'source']][u'id'],

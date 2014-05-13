@@ -1,17 +1,18 @@
-var w = 960,
-    h = 500
-    r = 10; //node radius
+var w = 850,
+    h = 500,
+    r = 20,
+    padding = 40; //node radius
 
 var color = d3.scale.category20();
 
 var force = d3.layout.force()
-    .charge(function(d) { return d.weight; })
+    .charge(function(d) { return d.weight * -15; })
 //    .linkDistance(325)
     .gravity(0)
     .size([w, h]);
 
 var zones = [5, 2]; //[horizontal,vertical] division
-var foci = [];
+var foci = [{x:0, y:0}, {x:100, y: 100}];
 for(var a=1;a<=zones[0];a++) {
     for(var b=1;b<=zones[1];b++) {
         var xf = ((w/zones[0])*(2*a - 1))/2;
@@ -42,17 +43,17 @@ d3.json("/group/4234424/graph", function(error, graph) {
     .attr("d", "M 0 0 L 10 5 L 0 10 z");
 
   force.on("tick", function(e) {
-      var k = ~~(100  * Math.random());
+      var k = ~~(200  * Math.random());
 
   // Push nodes toward their designated focus.
       graph.nodes.forEach(function(o, i) {
-        var foc  = parseInt(o.id) % (zones[0] * zones[1]);
+        var foc  = parseInt(o.id) % (zones[0] * zones[1] + 2);
 
         var yy = (Math.random() < 0.5 ? -1 : 1) * k + foci[foc].y;
         var xx = (Math.random() < 0.5 ? -1 : 1) * k + foci[foc].x;
-        if(xx > r && xx < (w-r))
+        if(xx > 2*r && xx < (w-2*r))
             o.x = xx;
-        if(yy > r && yy < (h-r))
+        if(yy > 2*r && yy < (h-2*r))
             o.y = yy;
       });
   });
@@ -61,6 +62,7 @@ d3.json("/group/4234424/graph", function(error, graph) {
   setTimeout(function() {
         force.start();
         for (var i = 100; i > 0; --i) force.tick();
+        while(!checkCollisions(graph.nodes, graph.links)) force.tick();
         force.stop();
 
         link = svg.selectAll(".link-wrap")
@@ -89,11 +91,11 @@ d3.json("/group/4234424/graph", function(error, graph) {
               .attr("xlink:href", d.img);
         });
         node.append("circle")
-            .attr("xlink:href", function(d) { console.log(d); return d.img; })
+            .attr("xlink:href", function(d) { return d.img; })
             .attr("class", "img-clip")
             .attr("cx", 0)
             .attr("cy", 0)
-            .attr("r", 20)
+            .attr("r", r)
             .attr("title", function(d) { return d.name; });
 
         node.attr("transform", function(d) { return "translate(" + Math.max(r, Math.min(w - r, d.x))
@@ -110,6 +112,15 @@ d3.json("/group/4234424/graph", function(error, graph) {
               var t = d3.select(this);
               var n = t.select(".link").node();
               var point = n.getPointAtLength(n.getTotalLength()/2);
+              graph.nodes.forEach(function(elem, index, at) {
+                     //Make sure there are no nodes on top of weights.
+                    if((elem.x - 1.5*r) < point.x && (elem.x + 1.5*r) < point.x
+                        && (elem.y - 1.5*r) < point.y && (elem.y + 1.5*r) > point.y) {
+                        force.resume();
+                        force.tick();
+                        force.stop();
+                    }
+              });
               t.append("text").attr("class", "edge-weight")
                   .text(d.weight).attr("x", point.x).attr("y", point.y);
         });
@@ -145,9 +156,18 @@ d3.json("/group/4234424/graph", function(error, graph) {
               d3.select(this.nextSibling).style("display","");
               return "";
           });
-
-          var img_size = 15;
-          //resize image??
       };
+  }
+
+  function checkCollisions(nodes, links) {
+      nodes.forEach(function(e, i, a) {
+          nodes.forEach(function(ee, ii, aa) {
+              var dx = e.x - ee.x,
+                  dy = e.y - ee.y;
+              if(Math.sqrt(dx*dx - dy*dy) < 2*r)
+                  return false;
+          });
+      });
+      return true;
   }
 });

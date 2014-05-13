@@ -1,0 +1,2 @@
+- Install python-pygame.
+ 

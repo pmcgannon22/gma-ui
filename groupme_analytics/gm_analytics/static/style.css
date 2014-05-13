@@ -2,6 +2,10 @@ body > .container {
      padding: 60px 15px 0;
 }
 
+.row {
+    margin-bottom: 40px;
+}
+
 .col-centered {
   margin: 0 auto;
   float:none;
@@ -9,10 +13,6 @@ body > .container {
 
 #group-photo {
   width: 100%;
-}
-
-.members {
-  margin-top: 50px;
 }
 
 .members .list-group {
@@ -27,4 +27,30 @@ body > .container {
 
 .members .list-group-item h6 {
   margin: 2px 0;
+}
+
+#network .node {
+  stroke: #fff;
+  stroke-width: 1.5px;
+}
+
+#network .link {
+  fill: none;
+  stroke: #999;
+  stroke-opacity: .6;
+}
+
+#network .edge-weight {
+    display: none;
+    font-size: 17px;
+    font-weight: bold;
+    stroke: #FFF;
+    stroke-width: .25px;
+}
+
+.pagerank ol {
+    font-size: 110%;
+    line-height: 1.6;
+    max-height: 450px;
+    overflow-y: auto;
 }
