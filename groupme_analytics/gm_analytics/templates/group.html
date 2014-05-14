@@ -4,7 +4,14 @@
 {% load humanize %}
 {% block title %}{{ group_info.name }}{% endblock %}
 
+{% block extrahead %}
+<script src="https://raw.githubusercontent.com/jasondavies/d3-cloud/master/d3.layout.cloud.js"></script>
+{% endblock %}
+
 {% block content %}
+<script>
+var group_id = {{ group_info.id }};
+</script>
 <div class="container">
     <div class="row">
         <div class="page-header">
@@ -47,7 +54,20 @@
         </div>
     </div>
 
+    <div class="page-header">
+        <h3>Percentages</h3>
+    </div>
+
+    <div class="row">
+        <div class="col-md-9" id="tree"></div>
+        <ul class="col-md-3 percentage nav nav-pills nav-stacked">
+          <li id="messages" class="active"><a>Messages</a></li>
+          <li id="likes_rec"><a>Likes Received</a></li>
+          <li id="likes_given"><a>Likes Given</a></li>
+        </ul>
+    </div>
     <script src="{% static "js/network.js" %}"></script>
+    <script src="{% static "js/treemap.js" %}"></script>
     </div>
 </div>
 

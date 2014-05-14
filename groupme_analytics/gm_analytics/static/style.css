@@ -1,3 +1,13 @@
+.nav-stacked > li {
+  float: none;
+}
+
+.nav-stacked > li + li {
+  margin-top: 2px;
+  margin-left: 0;
+}
+
+
 body > .container {
      padding: 60px 15px 0;
 }
@@ -44,7 +54,7 @@ body > .container {
     display: none;
     font-size: 17px;
     font-weight: bold;
-    stroke: #FFF;
+    stroke: red;
     stroke-width: .25px;
 }
 
@@ -53,4 +63,13 @@ body > .container {
     line-height: 1.6;
     max-height: 450px;
     overflow-y: auto;
+}
+
+.cell {
+    overflow: hidden;
+}
+
+
+.percentage a {
+    cursor: pointer;
 }

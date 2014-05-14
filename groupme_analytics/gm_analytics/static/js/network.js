@@ -27,9 +27,11 @@ var svg = d3.select("#network").append("svg")
 .attr("viewBox", "0 0 " + w + " " + h )
 .attr("preserveAspectRatio", "xMinYMin meet");
 
-d3.json("/group/4234424/graph", function(error, graph) {
+//group id set at top of group.html template
+d3.json("/group/" + group_id + "/graph", function(error, graph) {
     force.nodes(graph.nodes)
       .links(graph.links);
+
 
     svg.append("defs").append("marker")
     .attr("id", "arrowhead")
@@ -71,8 +73,8 @@ d3.json("/group/4234424/graph", function(error, graph) {
             .attr("class", "link-wrap")
             .append("path")
             .attr("class", "link")
-            .style("stroke-width", function(d) { return Math.sqrt(d.value); })
-            .attr("marker-end", "url(#arrowhead)");
+            .style("stroke-width", function(d) { return Math.sqrt(d.value); });
+            //.attr("marker-end", "url(#arrowhead)");
 
         node = svg.selectAll(".node")
             .data(graph.nodes)
@@ -112,15 +114,6 @@ d3.json("/group/4234424/graph", function(error, graph) {
               var t = d3.select(this);
               var n = t.select(".link").node();
               var point = n.getPointAtLength(n.getTotalLength()/2);
-              graph.nodes.forEach(function(elem, index, at) {
-                     //Make sure there are no nodes on top of weights.
-                    if((elem.x - 1.5*r) < point.x && (elem.x + 1.5*r) < point.x
-                        && (elem.y - 1.5*r) < point.y && (elem.y + 1.5*r) > point.y) {
-                        force.resume();
-                        force.tick();
-                        force.stop();
-                    }
-              });
               t.append("text").attr("class", "edge-weight")
                   .text(d.weight).attr("x", point.x).attr("y", point.y);
         });
@@ -155,6 +148,13 @@ d3.json("/group/4234424/graph", function(error, graph) {
               }
               d3.select(this.nextSibling).style("display","");
               return "";
+          });
+
+          node.style("fill-opacity", function(o) {
+              if(opacity < 1)
+                  return o === d  ? 1 : .45;
+              else
+                  return 1;
           });
       };
   }
