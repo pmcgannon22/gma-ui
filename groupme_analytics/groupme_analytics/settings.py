@@ -141,6 +141,7 @@ INSTALLED_APPS = (
     'debug_toolbar',
     'django_mongodb_engine',
     'djangotoolbox',
+    'bootstrap3_datetime',
     'gm_analytics',
     # Uncomment the next line to enable the admin:
     # 'django.contrib.admin',

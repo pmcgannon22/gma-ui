@@ -22,7 +22,13 @@ body > .container {
 }
 
 #group-photo {
-  width: 100%;
+    position: relative;
+}
+
+#group-photo img {
+  width: 97%;
+  position:absolute;
+  clip: rect(0 auto 363px 0);
 }
 
 .members .list-group {

@@ -1,12 +1,14 @@
 from django.db import models
 
 from djangotoolbox.fields import ListField, DictField, EmbeddedModelField, RawField
+from django_mongodb_engine.contrib import MongoDBManager
 
 # Create your models here.
 class Group(models.Model):
     id = models.PositiveIntegerField(primary_key=True)
-    messages = ListField(EmbeddedModelField('Message'))
     analysis = EmbeddedModelField('GroupAnalysis')
+
+    objects = MongoDBManager()
 
     def get_absolute_url(self):
         return "/group/%s" % str(self.id)
@@ -16,13 +18,15 @@ class Group(models.Model):
 
 class Message(models.Model):
     created = models.DateTimeField()
+    group = models.ForeignKey(Group)
     author = models.PositiveIntegerField()
-    text = models.TextField()
+    text = models.TextField(null=True)
     img = models.URLField(null=True)
     likes = ListField(models.IntegerField())
+    n_likes = models.SmallIntegerField()
 
     def __unicode__(self):
-        return "%s: %s" % (self.author, self.text)
+        return "[@{}] {}: {} ({})".format(self.created,self.author, self.text, self.n_likes)
 
 class GroupAnalysis(models.Model):
     msgs_per = DictField(models.PositiveSmallIntegerField())

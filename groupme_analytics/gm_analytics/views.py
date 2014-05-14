@@ -1,16 +1,17 @@
 # Create your views here.
-from django import forms
 from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render, render_to_response
 from django.template import RequestContext
 from libs.groupme_tools.groupme_fetch import get_access_token, get_groups, messages, get_group
 from models import Group, Message, GroupAnalysis
+from forms import LoginForm
 
 from datetime import datetime, timedelta
 import operator
 import json
 import string
-import re
+from random import choice as random_element
+from collections import Counter
 
 import networkx as nx
 from networkx.readwrite import json_graph
@@ -25,27 +26,10 @@ def network(request):
 def groupme_login_required(function):
     def wrapper(request, *args, **kw):
         if not request.session.get('token'):
-            return redirect('/')
+            return HttpResponseRedirect('/')
         else:
             return function(request, *args, **kw)
     return wrapper
-
-
-
-class LoginForm(forms.Form):
-    username = forms.CharField()
-    username.widget = forms.TextInput(attrs={
-            'placeholder':'Username/Phone Number',
-            'required':'',
-            'autofocus':'',
-            'class':'form-control',
-            })
-    password = forms.CharField()
-    password.widget = forms.PasswordInput(attrs={
-            'class':'form-control',
-            'placeholder':'Password',
-            'required':''
-            })
 
 def home(request):
     if request.session.get('token'):
@@ -83,19 +67,37 @@ def group(request, id):
     request.session['member_map'] = c['member_map']
     try:
         group = Group.objects.get(id=id)
+        #print random_element(Message.objects.filter(group=id).filter(n_likes__gt=3))
     except Group.DoesNotExist:
         msgs = [Message(
                 created=datetime.fromtimestamp(float(msg[u'created_at'])),
                 author=msg[u'sender_id'],
                 text=msg[u'text'],
                 img=None,
-                likes=msg[u'favorited_by']
+                likes=msg[u'favorited_by'],
+                n_likes=len(msg[u'favorited_by'])
                 ) for msg in messages(request.session['token'], id)]
-        group = Group(id=id, messages=msgs, analysis=analysis(request, msgs, group_info))
+        group = Group(id=id, analysis=analysis(request, msgs, group_info))
+        def save_msg(m):
+            m.group = group
+            m.save()
+        map(lambda m: save_msg(m), msgs)
         group.save()
     c['group_info'] = group_info
     c['group'] = group
     return render(request, 'group.html', c)
+
+@groupme_login_required
+def group_messages(request, id):
+    c = {}
+    group_info = get_group(request.session['token'], id)
+    c['member_map'] = {member[u'user_id']: member[u'nickname'] for member in group_info[u'members']}
+    try:
+        group_messages = Group.objects.get(id=id).messages
+    except Group.DoesNotExist:
+        return HttpResponseRedirect('/group/%d' % id)
+    c['group_info'] = group_info
+    return render(request, 'messages.html', c)
 
 
 def analysis(request, msgs, group_info):
@@ -148,6 +150,7 @@ def get_graph_json(request, id):
     graph[u'nodes'] = [{u'id':n[u'id'], u'name':member_map[n[u'id']][0], u'img':member_map[n[u'id']][1]} for n in graph[u'nodes']]
     return HttpResponse(json.dumps(graph), content_type='application/csv')
 
+@groupme_login_required
 def get_percentage_json(request, id):
     group_info = get_group(request.session['token'], id)
     member_map = {member[u'user_id']: member[u'nickname'] for member in group_info[u'members']}
@@ -166,4 +169,6 @@ def get_percentage_json(request, id):
 def get_msgs(request, id, count):
     d = datetime.now() + timedelta(-30)
     messages = (Group.objects.get(id=id).messages)[:100]
+    words = " ".join([m.text.strip(string.punctuation) for m in messages if m.text]).split()
+    print Counter(words)
     return HttpResponse(" ".join([m.text.strip(string.punctuation) for m in messages if m.text]), content_type="text/plain")

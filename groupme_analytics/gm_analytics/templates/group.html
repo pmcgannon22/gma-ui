@@ -4,8 +4,9 @@
 {% load humanize %}
 {% block title %}{{ group_info.name }}{% endblock %}
 
-{% block extrahead %}
-<script src="https://raw.githubusercontent.com/jasondavies/d3-cloud/master/d3.layout.cloud.js"></script>
+{% block navitems %}
+<li class="active"><a href="/group/{{ group_info.group_id }}">Group</a></li>
+<li><a href="/group/{{ group_info.group_id }}/messages">Messages</a></li>
 {% endblock %}
 
 {% block content %}
@@ -13,14 +14,12 @@
 var group_id = {{ group_info.id }};
 </script>
 <div class="container">
-    <div class="row">
-        <div class="page-header">
-          <h2>{{ group_info.name }} <small>Created: {{ group_info.created_at }}, {{ group_info.messages.count|intcomma }} total messages </small></h2>
-        </div>
+    <div class="page-header">
+      <h2>{{ group_info.name }} <small>Created: {{ group_info.created_at }}, {{ group_info.messages.count|intcomma }} total messages </small></h2>
     </div>
   <div class="row">
-    <div class="col-md-8">
-      <img id="group-photo" src="{{ group_info.image_url }}">
+    <div id="group-photo" class="col-md-8">
+      <img src="{{ group_info.image_url }}">
     </div>
 
     <div class="members col-md-4">
@@ -40,6 +39,7 @@ var group_id = {{ group_info.id }};
         </div>
     </div>
 </div>
+ {% block group_content %}
     <div class="page-header">
         <h3>Group Connections <small style="margin-left: 10px;">Value of a <span style="font-size: 140%; color: red;">&#9829;</span></small></h3>
     </div>
@@ -70,5 +70,6 @@ var group_id = {{ group_info.id }};
     <script src="{% static "js/treemap.js" %}"></script>
     </div>
 </div>
+{% endblock %}
 
 {% endblock %}

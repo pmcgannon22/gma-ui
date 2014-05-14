@@ -1,0 +1,17 @@
+{% extends "group.html" %}
+{% load filters %}
+{% load staticfiles %}
+{% load humanize %}
+
+{% block navitems %}
+<li><a href="/group/{{ group_info.group_id }}">Group</a></li>
+<li class="active"><a href="/group/{{ group_info.group_id }}/messages">Messages</a></li>
+{% endblock %}
+
+{% block group_content %}
+<div class="page-header">
+    <h3>Message Finder</h3>
+</div>
+
+
+{% endblock %}
