@@ -1,5 +1,6 @@
 from django import template
 import operator
+from datetime import date
 
 register = template.Library()
 
@@ -8,13 +9,8 @@ def get_item(dictionary, key):
     return dictionary.get(key)
 
 @register.filter
-def div(value, arg):
-    try:
-        value = float(value)
-        arg = float(arg)
-        if arg: return value/arg
-    except: pass
-    return ''
+def ftimestamp(ts, fmat):
+    return date.fromtimestamp(float(ts)).strftime(fmat)
 
 @register.filter
 def dictsort_val(value):
