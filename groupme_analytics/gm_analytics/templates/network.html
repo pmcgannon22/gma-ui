@@ -3,42 +3,17 @@
 {% load staticfiles %}
 
 {% block extrahead %}
-
-
-
-<style>
-
-.node {
-  stroke: #fff;
-  stroke-width: 1.5px;
-}
-
-.link {
-  fill: none;
-  stroke: #999;
-  stroke-opacity: .6;
-}
-
-.edge-weight {
-    display: none;
-    font-size: 17px;
-    stroke: #FFF;
-    stroke-width: .25px;
-}
-</style>
-
-
-
+<script src="{% static "js/d3.layout.cloud.js" %}"></script>
 {% endblock %}
 
 {% block content %}
 
 <div class="container">
     <div class="row">
-        <div id="network"></div>
+        <div id="cloud"></div>
     </div>
 </div>
 
-<script src="{% static "js/network.js" %}"></script>
+<script src="{% static "js/wordcloud.js" %}"></script>
 
 {% endblock %}

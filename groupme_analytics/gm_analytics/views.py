@@ -4,7 +4,7 @@ from django.shortcuts import render, render_to_response
 from django.template import RequestContext
 from libs.groupme_tools.groupme_fetch import get_access_token, get_groups, messages, get_group
 from models import Group, Message, GroupAnalysis
-from forms import LoginForm
+from forms import LoginForm, MessageForm
 
 from datetime import datetime, timedelta
 import operator
@@ -44,6 +44,8 @@ def login(request):
             cd = form.cleaned_data
             access_token = get_access_token(cd['username'],cd['password'])
             request.session['token'] = access_token
+        else:
+            print form.errors
         return HttpResponseRedirect('/groups')
     else:
         form=LoginForm()
@@ -62,7 +64,6 @@ def groups(request):
 def group(request, id):
     c = {}
     group_info = get_group(request.session['token'], id)
-    group_info[u'created_at'] = datetime.fromtimestamp(int(group_info[u'created_at'])).strftime('%m/%d/%Y')
     c['member_map'] = {member[u'user_id']: member[u'nickname'] for member in group_info[u'members']}
     request.session['member_map'] = c['member_map']
     try:
@@ -71,7 +72,7 @@ def group(request, id):
     except Group.DoesNotExist:
         msgs = [Message(
                 created=datetime.fromtimestamp(float(msg[u'created_at'])),
-                author=msg[u'sender_id'],
+                author=msg[u'user_id'] if msg[u'user_id'] != 'system' else 0,
                 text=msg[u'text'],
                 img=None,
                 likes=msg[u'favorited_by'],
@@ -88,15 +89,35 @@ def group(request, id):
     return render(request, 'group.html', c)
 
 @groupme_login_required
+def msq_query(request, id):
+    c = {}
+    group_info = get_group(request.session['token'], id)
+    c['member_map'] = {member[u'user_id']: member[u'nickname'] for member in group_info[u'members']}
+    form = MessageForm(request.GET, members=c['member_map'])
+    if form.is_valid():
+        d = form.cleaned_data
+        c['messages'] = Message.objects.filter(
+                            created__lte=d['end_date']).filter(
+                            created__gte=d['start_date']).filter(
+                            n_likes__gte=d['min_likes']).filter(
+                            n_likes__lte=d['max_likes']).filter(
+                            author__in=d['sent_by']).order_by('-n_likes', '-created')[:int(d['limit'])]
+        print c['messages']
+        return render(request, 'message_table.html', c)
+    else:
+        return HttpResponse("");
+
+@groupme_login_required
 def group_messages(request, id):
     c = {}
     group_info = get_group(request.session['token'], id)
     c['member_map'] = {member[u'user_id']: member[u'nickname'] for member in group_info[u'members']}
-    try:
-        group_messages = Group.objects.get(id=id).messages
-    except Group.DoesNotExist:
-        return HttpResponseRedirect('/group/%d' % id)
     c['group_info'] = group_info
+    c['form'] = MessageForm(members=c['member_map'])
+    try:
+        c['group'] = Group.objects.get(id=id)
+    except Group.DoesNotExist:
+        return HttpResponseRedirect('/group/%s' % id)
     return render(request, 'messages.html', c)
 
 

@@ -4,6 +4,11 @@
 {% load humanize %}
 {% block title %}{{ group_info.name }}{% endblock %}
 
+{% block extrahead %}
+<script src="{% static "lib/bootstrap-select.min.js" %}"></script>
+<link href="{% static "lib/bootstrap-select.min.css" %}" rel="stylesheet">
+{% endblock %}
+
 {% block navitems %}
 <li class="active"><a href="/group/{{ group_info.group_id }}">Group</a></li>
 <li><a href="/group/{{ group_info.group_id }}/messages">Messages</a></li>
@@ -15,7 +20,7 @@ var group_id = {{ group_info.id }};
 </script>
 <div class="container">
     <div class="page-header">
-      <h2>{{ group_info.name }} <small>Created: {{ group_info.created_at }}, {{ group_info.messages.count|intcomma }} total messages </small></h2>
+      <h2>{{ group_info.name }} <small>Created: {{ group_info.created_at|ftimestamp:"%m/%d/%Y" }}, {{ group_info.messages.count|intcomma }} total messages </small></h2>
     </div>
   <div class="row">
     <div id="group-photo" class="col-md-8">
@@ -41,11 +46,12 @@ var group_id = {{ group_info.id }};
 </div>
  {% block group_content %}
     <div class="page-header">
-        <h3>Group Connections <small style="margin-left: 10px;">Value of a <span style="font-size: 140%; color: red;">&#9829;</span></small></h3>
+        <h3>Group Connections <small><span style="font-size: 140%; color: red;">&#9829;</span> <span style="color: #FFCC6C;">given</span>/<span style="color: #00CDCD;">received</span></small>
     </div>
     <div class="row">
         <div class="col-md-9" id="network"></div>
         <div class="col-md-3 pagerank">
+            <h3>Value</h3>
             <ol>
                 {% for key, value in group.analysis.prank|dictsort_val %}
                 <li><strong>{{ member_map|get_item:key }}: </strong>{{ value|floatformat:6 }}</li>

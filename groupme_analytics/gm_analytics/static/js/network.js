@@ -11,12 +11,12 @@ var force = d3.layout.force()
     .gravity(0)
     .size([w, h]);
 
-var zones = [5, 2]; //[horizontal,vertical] division
+var zones = [8, 2]; //[horizontal,vertical] division
 var foci = [{x:0, y:0}, {x:100, y: 100}];
-for(var a=1;a<=zones[0];a++) {
+for(var a=0;a<zones[0];a++) {
     for(var b=1;b<=zones[1];b++) {
-        var xf = ((w/zones[0])*(2*a - 1))/2;
-        var yf = ((h/zones[1])*(2*b-1))/2;
+        var xf = w/zones[0] * a;
+        var yf = h/zones[1] * b;
         foci.push({x: xf, y: yf});
     }
 }
@@ -47,15 +47,15 @@ d3.json("/group/" + group_id + "/graph", function(error, graph) {
   force.on("tick", function(e) {
       var k = ~~(200  * Math.random());
 
-  // Push nodes toward their designated focus.
+      // Push nodes toward their designated focus.
       graph.nodes.forEach(function(o, i) {
         var foc  = parseInt(o.id) % (zones[0] * zones[1] + 2);
 
-        var yy = (Math.random() < 0.5 ? -1 : 1) * k + foci[foc].y;
-        var xx = (Math.random() < 0.5 ? -1 : 1) * k + foci[foc].x;
-        if(xx > 2*r && xx < (w-2*r))
+        var yy = k + foci[foc].y;
+        var xx = k + foci[foc].x;
+        if(xx < (w-2*r))
             o.x = xx;
-        if(yy > 2*r && yy < (h-2*r))
+        if(yy < (h-2*r))
             o.y = yy;
       });
   });
@@ -64,7 +64,6 @@ d3.json("/group/" + group_id + "/graph", function(error, graph) {
   setTimeout(function() {
         force.start();
         for (var i = 100; i > 0; --i) force.tick();
-        while(!checkCollisions(graph.nodes, graph.links)) force.tick();
         force.stop();
 
         link = svg.selectAll(".link-wrap")
@@ -72,6 +71,7 @@ d3.json("/group/" + group_id + "/graph", function(error, graph) {
             .enter().append("g")
             .attr("class", "link-wrap")
             .append("path")
+            .style("display", function(d) { console.log(d); return "";})
             .attr("class", "link")
             .style("stroke-width", function(d) { return Math.sqrt(d.value); });
             //.attr("marker-end", "url(#arrowhead)");

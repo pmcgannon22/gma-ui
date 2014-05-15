@@ -13,7 +13,7 @@ body > .container {
 }
 
 .row {
-    margin-bottom: 40px;
+    margin-bottom: 10px;
 }
 
 .col-centered {
@@ -58,7 +58,7 @@ body > .container {
 
 #network .edge-weight {
     display: none;
-    font-size: 17px;
+    font-size: 14px;
     font-weight: bold;
     stroke: red;
     stroke-width: .25px;
@@ -75,7 +75,25 @@ body > .container {
     overflow: hidden;
 }
 
-
 .percentage a {
     cursor: pointer;
+}
+
+
+/*
+Messages Page
+*/
+#loader {
+    width:125px;
+    height: 125px;
+}
+
+.msg-constraints form #sent-select .bootstrap-select.btn-group {
+    display: block;
+    width: 350px;
+}
+
+#like-constraint {
+    padding-left: 0px;
+    margin-right: -65px;
 }

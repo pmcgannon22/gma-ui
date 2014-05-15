@@ -1,0 +1,28 @@
+{% load filters %}
+
+<h4>Query matched {{ messages|length }} messages.</h4>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th class="col-md-2">Date</th>
+            <th class="col-md-7">Content</th>
+            <th class="col-md-1">Sender</th>
+            <th class="col-md-1">Likes</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for message in messages %}
+        <tr>
+            <td>{{ message.created }}</td>
+            {% if message.img %}
+                <td><a href="{{ message.img }}">{{ message.img }}</a></td>
+            {% else %}
+                <td>{{ message.text }}</td>
+            {% endif %}
+            <td>{{ member_map|get_item:message.author }}</td>
+            <td>{{ message.n_likes }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>

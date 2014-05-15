@@ -3,6 +3,32 @@
 {% load staticfiles %}
 {% load humanize %}
 
+{% block extrahead %}
+{{ block.super }}
+
+{{ form.media }}
+
+<script>
+$(function() {
+    $("#msg-query").submit(function(event) {
+        var q = $(this).serialize();
+        $.get("messages/query?" + q, function(data) {
+                if(data) {
+                    $("#query-error").hide();
+                    $("#query-resp").html(data);
+                }
+                else {
+                    $("#query-error").show();
+                }
+        });
+        event.preventDefault();
+    })
+})
+</script>
+
+
+{% endblock %}
+
 {% block navitems %}
 <li><a href="/group/{{ group_info.group_id }}">Group</a></li>
 <li class="active"><a href="/group/{{ group_info.group_id }}/messages">Messages</a></li>
@@ -13,5 +39,71 @@
     <h3>Message Finder</h3>
 </div>
 
+<div class="row msg-constraints">
+    <form id="msg-query" class="form-horizontal" action="/group/{{ group_info.group_id }}/messages" method="get" role="form">
+        <div class="form-group">
+            <div class="col-md-5">
+                    {{ form.start_date.label_tag }}
+                    {{ form.start_date }}
+            </div>
+            <div class="col-md-5">
+                    {{ form.end_date.label_tag }}
+                    {{ form.end_date }}
+            </div>
+        </div>
 
+        <div class="form-group">
+            <div class="col-md-3" id="like-constraint">
+                <div class="col-md-5">
+                    <label># of Likes</label>
+                    {{ form.min_likes }}
+                </div>
+                <div class="col-md-5">
+                    <label>Min/Max</label>
+                    {{ form.max_likes }}
+                </div>
+            </div>
+
+            <div class="col-md-4" id="sent-select">
+                {{ form.sent_by.label_tag }}
+                {{ form.sent_by }}
+            </div>
+
+            <div class="col-md-2" style="margin-left:-20px;">
+                {{ form.limit.label_tag }}
+                {{ form.limit }}
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div class="col-md-5">
+                <label class="checkbox-inline">
+                    {{ form.random }} {{ form.random.label_tag }}
+                </label>
+                <label class="checkbox-inline">
+                    {{ form.img }} {{ form.img.label_tag }}
+                </label>
+            </div>
+        </div>
+        {% for hidden in form.hidden_fields %}
+            {{ hidden }}
+        {% endfor %}
+        {% csrf_token %}
+        <div class="form-group">
+            <input type="submit" value="Submit" class="btn btn-primary" />
+        </div>
+    </form>
+
+    <div class="row">
+        <div id="query-error" style="display: none;" class="alert alert-danger">
+            <p>There were errors when processing the query. Please check that all requirements are met.</p>
+        </div>
+        <div class="col-md-12" id="query-resp">
+        </div>
+    </div>
+</div>
+
+<script>
+$('.selectpicker').selectpicker();
+</script>
 {% endblock %}
