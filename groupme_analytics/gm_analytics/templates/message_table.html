@@ -20,7 +20,7 @@
             {% else %}
                 <td>{{ message.text }}</td>
             {% endif %}
-            <td>{{ member_map|get_item:message.author }}</td>
+            <td>{{ message.author }}</td>
             <td>{{ message.n_likes }}</td>
         </tr>
         {% endfor %}

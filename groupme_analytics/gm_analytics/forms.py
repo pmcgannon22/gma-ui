@@ -29,7 +29,7 @@ class MessageForm(forms.Form):
     max_likes = forms.IntegerField(widget=forms.TextInput(attrs={
                     'class':'form-control','placeholder':'Max.', 'type':'number'}))
 
-    limit = forms.IntegerField(min_value=0, max_value=150, label="Message Limit (max. 150)", widget=forms.TextInput(attrs={
+    limit = forms.IntegerField(min_value=0, max_value=150, label="Limit (max. 150)", widget=forms.TextInput(attrs={
                     'class':'form-control', 'placeholder':'Limit', 'type':'number'}))
 
     start_date = forms.DateField(
