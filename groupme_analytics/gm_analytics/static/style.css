@@ -1,3 +1,31 @@
+/* Groups */
+.group-container {
+    padding: 15px;
+}
+
+.group-container h5 {
+    text-align: center;
+}
+
+.group-container h5 a {
+    color: black;
+}
+
+.group-icon {
+    border: 1px solid #ddd;
+    padding:4px;
+    position: relative;
+    height: 200px;
+    width: 275px;
+}
+
+.group-icon img {
+    width: 125%;
+    position: absolute;
+    clip: rect(0 265px 190px 0);
+}
+
+
 .nav-stacked > li {
   float: none;
 }
@@ -86,6 +114,14 @@ Messages Page
 #loader {
     width:125px;
     height: 125px;
+}
+
+.msg-constraints {
+    margin-left: 0px;
+}
+
+.msg-constraints input[type="submit"] {
+    margin-left: 15px;
 }
 
 .msg-constraints form #sent-select .bootstrap-select.btn-group {

@@ -3,8 +3,12 @@ from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render, render_to_response
 from django.template import RequestContext
 from libs.groupme_tools.groupme_fetch import get_access_token, get_groups, messages, get_group
+from utils import analysis
 from models import Group, Message, GroupAnalysis
 from forms import LoginForm, MessageForm
+
+import networkx as nx
+from networkx.readwrite import json_graph
 
 from datetime import datetime, timedelta
 import operator
@@ -12,9 +16,6 @@ import json
 import string
 from random import choice as random_element
 from collections import Counter
-
-import networkx as nx
-from networkx.readwrite import json_graph
 
 import logging
 
@@ -33,7 +34,7 @@ def groupme_login_required(function):
 
 def home(request):
     if request.session.get('token'):
-        return redirect('/groups')
+        return HttpResponseRedirect('/groups')
     form = LoginForm()
     return render_to_response('login.html', {'form':form},RequestContext(request))
 
@@ -68,7 +69,9 @@ def group(request, id):
     request.session['member_map'] = c['member_map']
     try:
         group = Group.objects.get(id=id)
-        #print random_element(Message.objects.filter(group=id).filter(n_likes__gt=3))
+        messages = list(Message.objects.filter(group=group))
+        group.analysis = analysis(request, messages, group_info)
+        group.save()
     except Group.DoesNotExist:
         msgs = [Message(
                 created=datetime.fromtimestamp(float(msg[u'created_at'])),
@@ -83,7 +86,6 @@ def group(request, id):
             m.group = group
             m.save()
         map(lambda m: save_msg(m), msgs)
-        group.save()
     c['group_info'] = group_info
     c['group'] = group
     return render(request, 'group.html', c)
@@ -102,7 +104,6 @@ def msq_query(request, id):
                             n_likes__gte=d['min_likes']).filter(
                             n_likes__lte=d['max_likes']).filter(
                             author__in=d['sent_by']).order_by('-n_likes', '-created')[:int(d['limit'])]
-        print c['messages']
         return render(request, 'message_table.html', c)
     else:
         return HttpResponse("");
@@ -120,54 +121,21 @@ def group_messages(request, id):
         return HttpResponseRedirect('/group/%s' % id)
     return render(request, 'messages.html', c)
 
-
-def analysis(request, msgs, group_info):
-    members = group_info[u'members']
-    member_map = request.session['member_map']
-    total_messages = {member[u'user_id']: 0 for member in members}
-    likes_given = {member[u'user_id']: 0 for member in members}
-    likes_rec = {member[u'user_id']: 0 for member in members}
-    like_graph = nx.DiGraph()
-    like_graph.add_nodes_from(member_map.keys())
-    total_likes = 0
-    for msg in msgs:
-        total_likes += len(msg.likes)
-        if msg.author in total_messages:
-            total_messages[msg.author] += 1
-        if msg.author in likes_rec:
-            likes_rec[msg.author] += len(msg.likes)
-        for like in msg.likes:
-            if like in member_map and msg.author in member_map:
-                if like_graph.has_edge(like, msg.author):
-                    like_graph[like][msg.author]['weight'] += 1
-                else:
-                    like_graph.add_edge(like, msg.author, {'weight':1})
-            if like in likes_given:
-                likes_given[like] += 1
-    like_ratio, msg_percentage = {},{}
-    total_group_msgs = float(group_info[u'messages'][u'count'])
-    for member in members:
-        m = member[u'user_id']
-        msg_percentage[m] = float(total_messages[m])/total_group_msgs
-        try:
-            like_ratio[m] = float(likes_rec[m])/float(likes_given[m])
-        except:
-            like_ratio[m] = 0.0
-    pers = {member[u'user_id']: (1-msg_percentage[member[u'user_id']]) for member in members}
-    avg = sum(pers.values())/len(pers)
-    pers = {n: (pers[n] if n in pers else avg) for n in like_graph.nodes_iter()}
-    logger.debug(pers)
-    pagerank = nx.pagerank(like_graph, alpha=.95, personalization=pers)
-    return GroupAnalysis(msgs_per=total_messages, likes_rec=likes_rec, likes_give=likes_given,
-                    prank=pagerank,
-                    msg_perc=msg_percentage, ratio=like_ratio, like_network=json_graph.dumps(like_graph))
-
 @groupme_login_required
 def get_graph_json(request, id):
     group_info = get_group(request.session['token'], id)
     member_map = {member[u'user_id']: (member[u'nickname'], member[u'image_url']) for member in group_info[u'members']}
     analysis = Group.objects.get(id=id).analysis
-    graph = json.loads(analysis.like_network)
+    d = json_graph.loads(analysis.like_network)
+    g = nx.Graph()
+    g.add_nodes_from(d)
+    #convert to undirected
+    for u,v,d in d.edges(data=True):
+        if g.has_edge(u,v):
+            g[u][v]['weight']+=d['weight']
+        else:
+            g.add_edge(u,v,d)
+    graph = json.loads(json_graph.dumps(g))
     graph[u'nodes'] = [{u'id':n[u'id'], u'name':member_map[n[u'id']][0], u'img':member_map[n[u'id']][1]} for n in graph[u'nodes']]
     return HttpResponse(json.dumps(graph), content_type='application/csv')
 
@@ -193,3 +161,11 @@ def get_msgs(request, id, count):
     words = " ".join([m.text.strip(string.punctuation) for m in messages if m.text]).split()
     print Counter(words)
     return HttpResponse(" ".join([m.text.strip(string.punctuation) for m in messages if m.text]), content_type="text/plain")
+
+@groupme_login_required
+def get_daily_data(request, id):
+    limit = request.GET.get('limit', None)
+    msgs = Message.objects.filter(group=id)
+    daily_msgs = Counter([m.created.strftime('%Y-%m-%d') for m in msgs])
+    daily_msgs = daily_msgs.most_common(int(limit)) if limit else daily_msgs
+    return HttpResponse(json.dumps(dict(daily_msgs)), content_type="text/json")
