@@ -4,13 +4,16 @@
 
 {% block content %}
 <div class="container">
-  <div class="list-group col-md-4 col-centered">
     <h2 class="text-center">Choose a Group</h2>
     {% for group in groups %}
-    <a href="group/{{ group.id }}" class="list-group-item">
-      <h5 class="list-group-item-heading">{{ group.name }}</h5>
-    </a>
+    <div class="group-container col-md-3">
+        <div class="group-icon">
+            <a href="group/{{ group.id }}">
+                <img src="{{ group.image_url|default_if_none:"https://lh4.ggpht.com/EyZuxEz7W8N2U6t97xOlf58nzRT7-EVV_dP-eDoXQSaQ6WvYvAomhP4fWL8MxpmyDw=w300" }}">
+            </a>
+        </div>
+        <h5><a href="group/{{ group.id }}">{{ group.name }}</a></h5>
+    </div>
     {% endfor %}
-  </div>
 </div>
 {% endblock %}
