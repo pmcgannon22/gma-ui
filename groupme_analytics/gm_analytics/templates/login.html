@@ -53,6 +53,9 @@ body {
         <h2 class="form-signin-heading">GroupMe Analytics</h2>
 	{{ form.username }}
 	{{ form.password }}
+    {% if error %}
+        <div class="alert alert-danger"><strong>Error: {{ error }}<strong></div>
+    {% endif %}
         <button class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>
       </form>
 

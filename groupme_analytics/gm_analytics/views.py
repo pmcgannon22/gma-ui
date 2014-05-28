@@ -2,7 +2,7 @@
 from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render, render_to_response
 from django.template import RequestContext
-from libs.groupme_tools.groupme_fetch import get_access_token, get_groups, messages, get_group
+from libs.groupme_tools.groupme_fetch import get_user_access, get_groups, messages, get_group
 from utils import analysis
 from models import Group, Message, GroupAnalysis
 from forms import LoginForm, MessageForm
@@ -43,8 +43,18 @@ def login(request):
         form = LoginForm(request.POST)
         if form.is_valid():
             cd = form.cleaned_data
-            access_token = get_access_token(cd['username'],cd['password'])
-            request.session['token'] = access_token
+            login_info = get_user_access(cd['username'],cd['password'])
+            if login_info[u'response']:
+                request.session['token'] = login_info[u'response'][u'access_token']
+                request.session['user_id'] = login_info[u'response'][u'user_id']
+                request.session['user_name'] = login_info[u'response'][u'user_name']
+            elif u'meta' in login_info:
+                return render(request, 'login.html',
+                    {'form':LoginForm(), 'error': login_info[u'meta'][u'errors'][0]})
+            else:
+                return render(request, 'login.html',
+                    {'form':LoginForm(), 'error': "Unknown Error. Try again."})
+
         else:
             print form.errors
         return HttpResponseRedirect('/groups')
@@ -86,6 +96,7 @@ def group(request, id):
             m.group = group
             m.save()
         map(lambda m: save_msg(m), msgs)
+    group.save()
     c['group_info'] = group_info
     c['group'] = group
     return render(request, 'group.html', c)
