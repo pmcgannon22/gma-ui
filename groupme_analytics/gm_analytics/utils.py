@@ -1,7 +1,7 @@
 import networkx as nx
 from networkx.readwrite import json_graph
 
-from libs.groupme_tools.groupme_fetch import get_access_token, get_groups, messages, get_group
+from libs.groupme_tools.groupme_fetch import get_user_access, get_groups, messages, get_group
 
 from models import GroupAnalysis
 from collections import Counter

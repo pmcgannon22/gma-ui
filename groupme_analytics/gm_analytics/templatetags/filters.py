@@ -6,11 +6,27 @@ register = template.Library()
 
 @register.filter
 def get_item(dictionary, key):
-    return dictionary.get(key)
+    return dictionary.get(unicode(key))
 
 @register.filter
 def ftimestamp(ts, fmat):
     return date.fromtimestamp(float(ts)).strftime(fmat)
+
+@register.filter
+def fname(name, format):
+    format = format.lower()
+    try:
+        nsplit = name.split(" ")
+        if format is "fi l":
+            return "%s %s" % (nsplit[0][0], nsplit[1])
+        elif format is "fi.li.":
+            return "%s.%s." % (nsplit[0][0], nsplit[1][0])
+        elif format is "f li":
+            return "%s %s" % (nsplit[0], nsplit[1][0])
+        else:
+            return name
+    except IndexError:
+        return name
 
 @register.filter
 def dictsort_val(value):

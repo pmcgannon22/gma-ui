@@ -22,7 +22,7 @@ class MessageForm(forms.Form):
         super(MessageForm, self).__init__(*args, **kwargs)
         self.fields['sent_by'].choices = members
 
-    random = forms.BooleanField(label="Random", required=False)
+    random = forms.BooleanField(label="Randomize", required=False)
     img = forms.BooleanField(label="Contains image", required=False)
     min_likes = forms.IntegerField(widget=forms.TextInput(attrs={
                     'class':'form-control','placeholder':'Min.','type':'number'}))
