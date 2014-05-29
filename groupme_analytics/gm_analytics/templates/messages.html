@@ -10,7 +10,7 @@
 
 <script>
 $(function() {
-    $("#msg-query").submit(function(event) {
+    $("#msg-query").submit(function(e) {
         var q = $(this).serialize();
         $.get("messages/query?" + q, function(data) {
                 if(data) {
@@ -21,8 +21,12 @@ $(function() {
                     $("#query-error").show();
                 }
         });
-        event.preventDefault();
-    })
+        e.preventDefault();
+    });
+    $('body').on('hidden.bs.modal', '.modal', function () {
+        $(this).removeData('bs.modal');
+    });
+
 })
 </script>
 
@@ -35,6 +39,14 @@ $(function() {
 {% endblock %}
 
 {% block group_content %}
+<div class="page-header">
+    <h3>By the Numbers</h3>
+</div>
+
+<div class="row">
+    <div class="col-md-9" id="daily"></div>
+</div>
+
 <div class="page-header">
     <h3>Message Finder</h3>
 </div>
@@ -102,6 +114,15 @@ $(function() {
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="conversationModal" tabindex="-1" role="dialog" aria-labelledby="conversationModal" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+    </div>
+  </div>
+</div>
+
+<script src="{% static "js/line.js" %}"></script>
 
 <script>
 $('.selectpicker').selectpicker();

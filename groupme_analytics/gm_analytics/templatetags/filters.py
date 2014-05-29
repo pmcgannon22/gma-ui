@@ -13,15 +13,15 @@ def ftimestamp(ts, fmat):
     return date.fromtimestamp(float(ts)).strftime(fmat)
 
 @register.filter
-def fname(name, format):
-    format = format.lower()
+def fname(name, fmat):
+    fmat = fmat.lower()
     try:
         nsplit = name.split(" ")
-        if format is "fi l":
+        if fmat == "fi l":
             return "%s %s" % (nsplit[0][0], nsplit[1])
-        elif format is "fi.li.":
+        elif fmat == "fi.li.":
             return "%s.%s." % (nsplit[0][0], nsplit[1][0])
-        elif format is "f li":
+        elif fmat == "f li":
             return "%s %s" % (nsplit[0], nsplit[1][0])
         else:
             return name

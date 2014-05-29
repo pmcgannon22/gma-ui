@@ -1,6 +1,7 @@
 {% load filters %}
 
-<h4>Query matched {{ messages|length }} messages.</h4>
+<h4 style="margin-bottom: 2px;">Query matched {{ messages|length }} messages.</h4>
+<small>Click the date for message context.</small>
 
 <table class="table table-striped">
     <thead>
@@ -14,13 +15,16 @@
     <tbody>
         {% for message in messages %}
         <tr>
-            <td>{{ message.created }}</td>
-            {% if message.img %}
-                <td><a href="{{ message.img }}">{{ message.img }}</a></td>
-            {% else %}
-                <td>{{ message.text }}</td>
-            {% endif %}
-            <td>{{ message.author }}</td>
+            <td>
+            <a data-toggle="modal" href="messages/conversation?day={{ message.created|date:"m/d/Y" }}" data-target="#conversationModal">
+                {{ message.created|date:"N j, o - P" }}
+            </a>
+            </td>
+            <td>{{ message.text }} {% if message.img %}
+                – <a target="_blank" href="{{ message.img }}">attachment</a>
+                {% endif %}
+            </td>
+            <td>{{ member_map|get_item:message.author }}</td>
             <td>{{ message.n_likes }}</td>
         </tr>
         {% endfor %}

@@ -11,10 +11,10 @@ import networkx as nx
 from networkx.readwrite import json_graph
 
 from datetime import datetime, timedelta
-import operator
+from operator import itemgetter
 import json
 import string
-from random import choice as random_element
+import random
 from collections import Counter
 
 import logging
@@ -79,15 +79,15 @@ def group(request, id):
     request.session['member_map'] = c['member_map']
     try:
         group = Group.objects.get(id=id)
-        messages = list(Message.objects.filter(group=group))
-        group.analysis = analysis(request, messages, group_info)
-        group.save()
+        msgs = list(Message.objects.filter(group=group))
+        group.analysis = analysis(request, msgs, group_info)
     except Group.DoesNotExist:
+        get_attachment = lambda x: x[0].get('url', None) if len(x) else None
         msgs = [Message(
                 created=datetime.fromtimestamp(float(msg[u'created_at'])),
                 author=msg[u'user_id'] if msg[u'user_id'] != 'system' else 0,
                 text=msg[u'text'],
-                img=None,
+                img=get_attachment(msg[u'attachments']),
                 likes=msg[u'favorited_by'],
                 n_likes=len(msg[u'favorited_by'])
                 ) for msg in messages(request.session['token'], id)]
@@ -109,12 +109,20 @@ def msq_query(request, id):
     form = MessageForm(request.GET, members=c['member_map'])
     if form.is_valid():
         d = form.cleaned_data
-        c['messages'] = Message.objects.filter(
+        c['messages'] = Message.objects.filter(group=id).filter(
                             created__lte=d['end_date']).filter(
                             created__gte=d['start_date']).filter(
                             n_likes__gte=d['min_likes']).filter(
                             n_likes__lte=d['max_likes']).filter(
-                            author__in=d['sent_by']).order_by('-n_likes', '-created')[:int(d['limit'])]
+                            author__in=d['sent_by'])
+        if d['img']:
+            c['messages'] = c['messages'].exclude(img__isnull=True)
+        if d['random']:
+            c['messages'] = list(c['messages'])
+            random.shuffle(c['messages'])
+            c['messages'] = c['messages'][:int(d['limit'])]
+        else:
+            c['messages'] = c['messages'].order_by('-n_likes', '-created')[:int(d['limit'])]
         return render(request, 'message_table.html', c)
     else:
         return HttpResponse("");
@@ -166,17 +174,37 @@ def get_percentage_json(request, id):
     return HttpResponse(json.dumps(js), content_type="application/csv")
 
 @groupme_login_required
-def get_msgs(request, id, count):
-    d = datetime.now() + timedelta(-30)
-    messages = (Group.objects.get(id=id).messages)[:100]
-    words = " ".join([m.text.strip(string.punctuation) for m in messages if m.text]).split()
-    print Counter(words)
-    return HttpResponse(" ".join([m.text.strip(string.punctuation) for m in messages if m.text]), content_type="text/plain")
+def get_conversation(request, id):
+    group_info = get_group(request.session['token'], id)
+    member_map = {member[u'user_id']: member[u'nickname'] for member in group_info[u'members']}
+    avatar_map = {member[u'user_id']: member[u'image_url'] for member in group_info[u'members']}
+    day = request.GET.get('day', datetime.today().strftime("%m/%d/%Y"))
+    d = datetime.strptime(day, "%m/%d/%Y") + timedelta(hours=-2)
+    d2 = d + timedelta(hours=24)
+    messages = Message.objects.filter(group=id).filter(created__lt=d2).filter(created__gt=d).order_by('created')
+    return render(request, 'conversation.html',
+        {'day1':d, 'day2':d2, 'msgs':messages, 'member_map':member_map, 'self_id':request.session[u'user_id'], 'avatar_map':avatar_map})
 
 @groupme_login_required
 def get_daily_data(request, id):
-    limit = request.GET.get('limit', None)
+    limit = request.GET.get('limit', 30)
+    sort_by = request.GET.get('sort', None)
     msgs = Message.objects.filter(group=id)
+    daily_likes = {}
+    for m in msgs:
+        d = m.created.strftime('%Y-%m-%d')
+        if d in daily_likes:
+            daily_likes[d] += len(m.likes)
+        else:
+            daily_likes[d] = len(m.likes)
+    daily_likes = Counter(daily_likes)
     daily_msgs = Counter([m.created.strftime('%Y-%m-%d') for m in msgs])
-    daily_msgs = daily_msgs.most_common(int(limit)) if limit else daily_msgs
-    return HttpResponse(json.dumps(dict(daily_msgs)), content_type="text/json")
+    likes_sorted = daily_likes.most_common(int(limit))
+    print likes_sorted[0]
+    msgs_sorted = daily_msgs.most_common(int(limit))
+    data = [{'date': m[0], 'msgs': m[1]} for m in msgs_sorted]
+    for m in data:
+        m['likes'] = daily_likes[m['date']]
+    data.extend([{'date':m[0], 'msgs': daily_msgs[m[0]], 'likes': m[1]} for m in likes_sorted])
+
+    return HttpResponse(json.dumps(data), content_type="text/json")
