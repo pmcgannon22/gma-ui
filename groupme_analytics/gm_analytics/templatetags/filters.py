@@ -14,6 +14,8 @@ def ftimestamp(ts, fmat):
 
 @register.filter
 def fname(name, fmat):
+    if name == "User_Not_In_Group":
+        return name
     fmat = fmat.lower()
     try:
         nsplit = name.split(" ")

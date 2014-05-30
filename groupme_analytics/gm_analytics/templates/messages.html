@@ -12,6 +12,8 @@
 $(function() {
     $("#msg-query").submit(function(e) {
         var q = $(this).serialize();
+        $("#msg-query input[type='submit']").hide();
+        $("#loading-query").show();
         $.get("messages/query?" + q, function(data) {
                 if(data) {
                     $("#query-error").hide();
@@ -20,6 +22,8 @@ $(function() {
                 else {
                     $("#query-error").show();
                 }
+                $("#msg-query input[type='submit']").show();
+                $("#loading-query").hide();
         });
         e.preventDefault();
     });
@@ -40,7 +44,7 @@ $(function() {
 
 {% block group_content %}
 <div class="page-header">
-    <h3>By the Numbers</h3>
+    <h3>Top Days <small>Messages & Likes</small></h3>
 </div>
 
 <div class="row">
@@ -103,6 +107,7 @@ $(function() {
         {% csrf_token %}
         <div class="form-group">
             <input type="submit" value="Submit" class="btn btn-primary" />
+            <button type="button" id="loading-query" class="btn btn-primary"><span class="glyphicon glyphicon-refresh glyphicon-refresh-animate">
         </div>
     </form>
 
