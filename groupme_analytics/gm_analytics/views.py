@@ -180,7 +180,7 @@ def get_conversation(request, id):
     avatar_map = {member[u'user_id']: member[u'image_url'] for member in group_info[u'members']}
     day = request.GET.get('day', datetime.today().strftime("%m/%d/%Y"))
     d = datetime.strptime(day, "%m/%d/%Y") + timedelta(hours=-2)
-    d2 = d + timedelta(hours=24)
+    d2 = d + timedelta(hours=28)
     messages = Message.objects.filter(group=id).filter(created__lt=d2).filter(created__gt=d).order_by('created')
     return render(request, 'conversation.html',
         {'day1':d, 'day2':d2, 'msgs':messages, 'member_map':member_map, 'self_id':request.session[u'user_id'], 'avatar_map':avatar_map})
@@ -202,9 +202,9 @@ def get_daily_data(request, id):
     likes_sorted = daily_likes.most_common(int(limit))
     print likes_sorted[0]
     msgs_sorted = daily_msgs.most_common(int(limit))
-    data = [{'date': m[0], 'msgs': m[1]} for m in msgs_sorted]
+    data = [{'date': m[0], 'Messages': m[1]} for m in msgs_sorted]
     for m in data:
-        m['likes'] = daily_likes[m['date']]
-    data.extend([{'date':m[0], 'msgs': daily_msgs[m[0]], 'likes': m[1]} for m in likes_sorted])
+        m['Likes'] = daily_likes[m['date']]
+    data.extend([{'date':m[0], 'Messages': daily_msgs[m[0]], 'Likes': m[1]} for m in likes_sorted])
 
     return HttpResponse(json.dumps(data), content_type="text/json")
