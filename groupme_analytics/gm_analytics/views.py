@@ -2,6 +2,7 @@
 from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render, render_to_response
 from django.template import RequestContext
+from django.core.cache import cache
 from libs.groupme_tools.groupme_fetch import get_user_access, get_groups, messages, get_group
 from utils import analysis
 from models import Group, Message, GroupAnalysis
@@ -16,6 +17,7 @@ import json
 import string
 import random
 from collections import Counter
+
 
 import logging
 
@@ -75,8 +77,15 @@ def groups(request):
 def group(request, id):
     c = {}
     group_info = get_group(request.session['token'], id)
+    c['group_info'] = group_info
     c['member_map'] = {member[u'user_id']: member[u'nickname'] for member in group_info[u'members']}
     request.session['member_map'] = c['member_map']
+
+    if cache.get('group-%s' % id):
+        c['group'] = cache.get('group-%s' % id)
+        return render(request, 'group.html', c)
+    if request.GET.get('ajaxLoad', '0') == '0':
+        return render(request, 'group-loader.html', c)
     try:
         group = Group.objects.get(id=id)
         msgs = list(Message.objects.filter(group=group))
@@ -96,8 +105,8 @@ def group(request, id):
             m.group = group
             m.save()
         map(lambda m: save_msg(m), msgs)
+    cache.set('group-%s' % id, group, 180)
     group.save()
-    c['group_info'] = group_info
     c['group'] = group
     return render(request, 'group.html', c)
 
@@ -206,5 +215,4 @@ def get_daily_data(request, id):
     for m in data:
         m['Likes'] = daily_likes[m['date']]
     data.extend([{'date':m[0], 'Messages': daily_msgs[m[0]], 'Likes': m[1]} for m in likes_sorted])
-
     return HttpResponse(json.dumps(data), content_type="text/json")

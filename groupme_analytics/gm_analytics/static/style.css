@@ -49,6 +49,19 @@ body > .container {
   float:none;
 }
 
+.data-loading {
+    float: none;
+    margin: 0 auto;
+}
+
+.data-loading > div {
+    margin-top: 50px;
+}
+
+.data-loading .glyphicon {
+  font-size: 2em;
+}
+
 #group-photo {
     position: relative;
 }

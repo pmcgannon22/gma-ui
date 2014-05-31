@@ -1,0 +1,20 @@
+{% extends "index.html" %}
+
+{% load staticfiles %}
+
+{% block title %}{{ group_info.name }}{% endblock %}
+
+{% block content %}
+<div class="container" id="loader-wrap">
+</div>
+
+<script>
+    var loader = Utils.renderLoader('#loader-wrap', "Retrieving Messages from GroupMe Server");
+
+    $.get("/group/{{ group_info.id }}?ajaxLoad=1", function() {
+        loader.html('');
+        window.location.href = "/group/{{ group_info.id }}";
+    });
+
+</script>
+{% endblock %}
