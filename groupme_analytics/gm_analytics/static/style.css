@@ -80,6 +80,32 @@ body > .container {
 
 .members .list-group-item {
   padding: 5px 10px;
+  cursor: pointer;
+}
+
+.members .list-group-item:hover {
+    background-color: #f7f7f9;
+}
+
+.user-sparkcharts {
+    display: none;
+}
+
+.user-sparkcharts hr {
+    margin-bottom: 5px;
+    margin-top: 10px;
+}
+
+.user-sparkcharts .sparkchart-wrap {
+    margin-top: 5px;
+    display: inline-block;
+    width: 40%;
+}
+
+.members .list-group-item .sparkline {
+  fill: none;
+  stroke: #000;
+  stroke-width: 0.5px;
 }
 
 .members .list-group-item h6 {

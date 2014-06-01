@@ -7,6 +7,26 @@
 {% block extrahead %}
 <script src="{% static "lib/bootstrap-select.min.js" %}"></script>
 <link href="{% static "lib/bootstrap-select.min.css" %}" rel="stylesheet">
+<script src="{% static "js/sparkline.js" %}"></script>
+
+<script>
+$(function() {
+    $(".members .list-group-item").click(function() {
+        var uid = this.getAttribute("data-uid");
+        var el = $("#user-sparkcharts-" + uid);
+        if(el.is(":visible")) {
+            el.slideUp();
+            return;
+        }
+        $(".members .list-group-item .user-sparkcharts").hide();
+
+        if($("#spark-likes-" + uid).is(":empty")) {
+            renderSparkline(uid);
+        }
+        el.slideDown();
+    });
+});
+</script>
 {% endblock %}
 
 {% block navitems %}
@@ -32,13 +52,29 @@ var group_id = {{ group_info.id }};
       <h6><em>total msgs | likes rec/given | ratio</em></h6>
         <div class="list-group">
         {% for member in group_info.members %}
-          <span class="list-group-item">
+          <span data-uid="{{ member.user_id }}" class="list-group-item">
     	  <h6>{{ member.nickname }}</h6>
     	     <span class="list-group-item-text">
     	            <small class="total-messages">Total Messages: {{ group.analysis.msgs_per|get_item:member.user_id }} | </small>
     	            <small>{{ group.analysis.likes_rec|get_item:member.user_id }}/{{ group.analysis.likes_give|get_item:member.user_id }} | </small>
     	            <small>{{ group.analysis.ratio|get_item:member.user_id|floatformat:3}}</small>
             </span>
+            <div class="user-sparkcharts" id="user-sparkcharts-{{ member.user_id }}">
+                <hr />
+                <small><em>30-day trends</em></small>
+                <div>
+                    <div class="sparkchart-wrap">
+                        <small style="font-size: 70%;">Likes</small>
+                        <div class="sparkchart" id="spark-likes-{{ member.user_id }}"></div>
+                    </div>
+
+                    <div class="sparkchart-wrap">
+                        <small style="font-size: 70%;">Messages</small>
+                        <div class="sparkchart" id="spark-messages-{{ member.user_id }}"></div>
+                    </div>
+                </div>
+            </div>
+
          </span>
          {% endfor %}
         </div>

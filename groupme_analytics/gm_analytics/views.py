@@ -16,7 +16,7 @@ from operator import itemgetter
 import json
 import string
 import random
-from collections import Counter
+from collections import Counter, OrderedDict
 
 
 import logging
@@ -195,6 +195,24 @@ def get_conversation(request, id):
         {'day1':d, 'day2':d2, 'msgs':messages, 'member_map':member_map, 'self_id':request.session[u'user_id'], 'avatar_map':avatar_map})
 
 @groupme_login_required
+def get_personal_data(request, id):
+    if request.GET.get('uid', False):
+        u = request.GET['uid']
+        days = int(request.GET.get('limit',50))
+        d = datetime.now() + timedelta(days=-days)
+        msgs = Message.objects.filter(group=id).filter(author=int(u)).filter(created__gt=d)
+
+        daily_msgs = Counter([m.created.strftime('%Y-%m-%d') for m in msgs])
+        daily_msgs = [{'date': m[0], 'total': m[1]} for m in sorted(daily_msgs.items(), key=itemgetter(0))]
+
+        daily_likes = OrderedDict()
+        for m in msgs:
+            d = m.created.strftime('%Y-%m-%d')
+            daily_likes[d] = daily_likes.get(d, 0) + m.n_likes
+        daily_likes = [{'date':k, 'total':v} for k,v in daily_likes.iteritems()]
+        return HttpResponse(json.dumps({'likes': daily_likes, 'messages': daily_msgs}), content_type='text/json')
+
+@groupme_login_required
 def get_daily_data(request, id):
     limit = request.GET.get('limit', 30)
     sort_by = request.GET.get('sort', None)
@@ -202,10 +220,7 @@ def get_daily_data(request, id):
     daily_likes = {}
     for m in msgs:
         d = m.created.strftime('%Y-%m-%d')
-        if d in daily_likes:
-            daily_likes[d] += len(m.likes)
-        else:
-            daily_likes[d] = len(m.likes)
+        daily_likes[d] = daily_likes.get(d, 0) + m.n_likes
     daily_likes = Counter(daily_likes)
     daily_msgs = Counter([m.created.strftime('%Y-%m-%d') for m in msgs])
     likes_sorted = daily_likes.most_common(int(limit))
