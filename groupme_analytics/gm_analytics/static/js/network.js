@@ -6,51 +6,33 @@ var w = 850,
 var color = d3.scale.category20();
 
 var force = d3.layout.force()
-    .charge(-120)
-    .linkDistance(40)
-    .size([w,h]);
+    .charge(function(d) { return d.weight * -15; })
+//    .linkDistance(325)
+    .gravity(0)
+    .size([w, h]);
+
+var zones = [8, 2]; //[horizontal,vertical] division
+var foci = [{x:0, y:0}, {x:100, y: 100}];
+for(var a=0;a<zones[0];a++) {
+    for(var b=1;b<=zones[1];b++) {
+        var xf = w/zones[0] * a;
+        var yf = h/zones[1] * b;
+        foci.push({x: xf, y: yf});
+    }
+}
 
 var svg = d3.select("#network").append("svg")
-    .attr("width", w)
-    .attr("height", h);
+.attr("width", w)
+.attr("height", h)
+.attr("viewBox", "0 0 " + w + " " + h )
+.attr("preserveAspectRatio", "xMinYMin meet");
 
 //group id set at top of group.html template
 d3.json("/group/" + group_id + "/graph", function(error, graph) {
-    console.log(graph)
-
     force.nodes(graph.nodes)
-      .links(graph.links)
-      .start();
+      .links(graph.links);
 
-    var link = svg.selectAll(".link")
-      .data(graph.links)
-      .enter().append("line")
-      .attr("class", "link")
-      .style("stroke-width", function(d) { return Math.sqrt(d.value); });
 
-  var node = svg.selectAll(".node")
-      .data(graph.nodes)
-      .enter().append("circle")
-      .attr("class", "node")
-      .attr("r", 5)
-      .style("fill", function(d) { return color(d); })
-      .attr("title", function(d) { return d.name; });
-
-    $("svg circle").tooltip({
-        'container': 'body',
-        'placement': 'top'
-    });
-
-  force.on("tick", function() {
-    node.attr("cx", function(d) { return d.x = Math.max(r, Math.min(w - r, d.x)); })
-        .attr("cy", function(d) { return d.y = Math.max(r, Math.min(h - r, d.y)); });
-
-    link.attr("x1", function(d) { return d.source.x; })
-        .attr("y1", function(d) { return d.source.y; })
-        .attr("x2", function(d) { return d.target.x; })
-        .attr("y2", function(d) { return d.target.y; });
-  });
-/*
     svg.append("defs").append("marker")
     .attr("id", "arrowhead")
     .attr("refX", 1)
@@ -109,7 +91,7 @@ d3.json("/group/" + group_id + "/graph", function(error, graph) {
               .attr("x",0).attr("y",0)
               .attr("height", 40).attr("width", 40)
               .attr("xlink:href", d.img);
-          });
+        });
         node.append("circle")
             .attr("xlink:href", function(d) { return d.img; })
             .attr("class", "img-clip")
@@ -187,8 +169,5 @@ d3.json("/group/" + group_id + "/graph", function(error, graph) {
           });
       });
       return true;
-  }*/
-
-
-
+  }
 });
