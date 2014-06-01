@@ -55,7 +55,7 @@ var group_id = {{ group_info.id }};
           <span data-uid="{{ member.user_id }}" class="list-group-item">
     	  <h6>{{ member.nickname }}</h6>
     	     <span class="list-group-item-text">
-    	            <small class="total-messages">Total Messages: {{ group.analysis.msgs_per|get_item:member.user_id }} | </small>
+    	            <small class="total-messages">{{ group.analysis.msgs_per|get_item:member.user_id }} | </small>
     	            <small>{{ group.analysis.likes_rec|get_item:member.user_id }}/{{ group.analysis.likes_give|get_item:member.user_id }} | </small>
     	            <small>{{ group.analysis.ratio|get_item:member.user_id|floatformat:3}}</small>
             </span>

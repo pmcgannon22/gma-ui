@@ -114,7 +114,10 @@
             .data(cats.map(function(d) { return d.name; }))
             .enter().append("g")
             .attr("class", "legend")
-            .attr("transform", function (d, i) { return "translate(-25," + (i * 20 + 50) + ")"; });
+            .attr("transform", function (d, i) { return "translate(0," + (i * 20 + 50) + ")"; })
+            .on("click", function(e) {
+
+            });
 
         legend.append("rect")
             .attr("x", width - 10)
@@ -124,7 +127,7 @@
             .style("stroke", "grey");
 
         legend.append("text")
-            .attr("x", width - 15)
+            .attr("x", width - 12)
             .attr("y", 6)
             .attr("dy", ".35em")
             .style("text-anchor", "end")
