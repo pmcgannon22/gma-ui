@@ -131,7 +131,9 @@ def msq_query(request, id):
             random.shuffle(c['messages'])
             c['messages'] = c['messages'][:int(d['limit'])]
         else:
-            c['messages'] = c['messages'].order_by('-n_likes', '-created')[:int(d['limit'])]
+            sort = '-' + d['sort_by'] if d['sort_order'] else d['sort_by']
+            sort = (sort, '-created') if d['sort_by'] == 'n_likes' else (sort, '-n_likes')
+            c['messages'] = c['messages'].order_by(sort[0], sort[1])[:int(d['limit'])]
         return render(request, 'message_table.html', c)
     else:
         return HttpResponse("");

@@ -112,6 +112,15 @@ body > .container {
   margin: 2px 0;
 }
 
+#network .zoom {
+    cursor: pointer;
+    font-size: 18px;
+}
+
+#network .zoom:hover {
+    font-weight: bold;
+}
+
 #network .node {
   stroke: #fff;
   stroke-width: 1.5px;
@@ -166,6 +175,19 @@ Messages Page
 .msg-constraints form #sent-select .bootstrap-select.btn-group {
     display: block;
     width: 350px;
+}
+
+.msg-constraints form #sort-select .bootstrap-select.btn-group {
+    display: block;
+    width: 175px;
+}
+
+.msg-constraints form #sort-desc {
+    margin-top: 25px;
+}
+
+.msg-constraints #all-senders {
+    color: black;
 }
 
 .glyphicon-refresh-animate {

@@ -58,13 +58,24 @@ $(function() {
 <div class="row msg-constraints">
     <form id="msg-query" class="form-horizontal" action="/group/{{ group_info.group_id }}/messages" method="get" role="form">
         <div class="form-group">
-            <div class="col-md-5">
+            <div class="col-md-3">
                     {{ form.start_date.label_tag }}
                     {{ form.start_date }}
             </div>
-            <div class="col-md-5">
+            <div class="col-md-3">
                     {{ form.end_date.label_tag }}
                     {{ form.end_date }}
+            </div>
+
+            <div class="col-md-2" id="sort-select">
+                {{ form.sort_by.label_tag }}
+                {{ form.sort_by }}
+            </div>
+
+            <div class="col-md-1">
+                <label class="checkbox-inline" id="sort-desc">
+                 {{ form.sort_order }} {{ form.sort_order.label_tag }}
+                </label>
             </div>
         </div>
 
@@ -81,7 +92,7 @@ $(function() {
             </div>
 
             <div class="col-md-4" id="sent-select">
-                {{ form.sent_by.label_tag }}
+                {{ form.sent_by.label_tag }} <a href="#" id="all-senders">All?</a>
                 {{ form.sent_by }}
             </div>
 
@@ -131,5 +142,9 @@ $(function() {
 
 <script>
 $('.selectpicker').selectpicker();
+$('#all-senders').click(function(event) {
+    event.preventDefault();
+    $('#sent-select .selectpicker').selectpicker('selectAll');
+});
 </script>
 {% endblock %}

@@ -34,7 +34,7 @@ class MessageForm(forms.Form):
 
     start_date = forms.DateField(
         widget=DateTimePicker(options={"format": "MM/DD/YYYY",
-                                       "pickTime": False}))
+                                       "pickTime": False}), required=False)
     end_date = forms.DateField(
         widget=DateTimePicker(options={"format": "MM/DD/YYYY",
                                        "pickTime": False,
@@ -42,3 +42,6 @@ class MessageForm(forms.Form):
 
     sent_by = forms.MultipleChoiceField(label="Sender(s)", widget=forms.SelectMultiple(
                                             attrs={'class':'selectpicker'}))
+    sort_by = forms.ChoiceField(label="Sort", choices=[('n_likes','Likes'), ('author','Group by Sender'), ('created','Date')], initial='Likes',
+                                            widget=forms.Select(attrs={'class': 'selectpicker'}))
+    sort_order = forms.BooleanField(label="Descending", initial=True, required=False)
