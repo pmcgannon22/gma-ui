@@ -112,9 +112,13 @@ body > .container {
   margin: 2px 0;
 }
 
+#network > svg {
+    border: 1px solid #f2f2f2;
+}
+
 #network .zoom {
     cursor: pointer;
-    font-size: 18px;
+    font-size: 22px;
 }
 
 #network .zoom:hover {
@@ -134,7 +138,7 @@ body > .container {
 
 #network .edge-weight {
     display: none;
-    font-size: 14px;
+    font-size: 20px;
     font-weight: bold;
     stroke: red;
     stroke-width: .25px;

@@ -5,14 +5,26 @@ d3.json("/group/" + group_id + "/graph", function(error, graph) {
         h = 2000,
         elemWidth = 850,
         elemHeight = 525,
-        r = 20,
+        r = 30,
         color = d3.scale.category20();
 
     var max_weight = d3.max(graph.links, function(d) { return d.weight; });
+    var linkWeights = [];
+    graph.links.forEach(function(e, i, arr) {
+        linkWeights[e.source] = linkWeights[e.source] || [];
+        linkWeights[e.target] = linkWeights[e.target] || [];
+        if(linkWeights[e.target][e.source] == undefined) {
+            linkWeights[e.source][e.target] =  e.weight;
+        } else {
+            linkWeights[e.source][e.target] =  Math.sqrt(e.weight * linkWeights[e.target][e.source]);
+            linkWeights[e.target][e.target] = linkWeights[e.source][e.target];
+        }
+    });
+
     var force = d3.layout.force()
-        .charge(function(d) { return -120; })
-        .linkDistance(function(a,b,c,d) {
-            return ((max_weight + 1 - a.weight)/max_weight) * (w/7);
+        .charge(function(d) { return -500; })
+        .linkDistance(function(a) {
+            return ((max_weight + 1 - linkWeights[a.source.index][a.target.index])/max_weight) * (w/2.5);
          })
         .size([w, h]);
 
@@ -49,7 +61,7 @@ d3.json("/group/" + group_id + "/graph", function(error, graph) {
     svgWrap.append("text")
         .text("+")
         .attr("class", "zoom in")
-        .attr("x", elemWidth - 30).attr("y",15)
+        .attr("x", elemWidth - 25).attr("y",15)
         .on("click", function() {
             zoom('in');
             svg.attr("viewBox", viewBoxCoords.x1 + " " + viewBoxCoords.y1 + " " + viewBoxCoords.x2 + " " + viewBoxCoords.y2);
@@ -58,15 +70,18 @@ d3.json("/group/" + group_id + "/graph", function(error, graph) {
     svgWrap.append("text")
         .text("–")
         .attr("class", "zoom out")
-        .attr("x", elemWidth - 10).attr("y",15)
+        .attr("x", elemWidth - 24).attr("y",30)
         .on("click", function() {
             zoom('out');
             svg.attr("viewBox", viewBoxCoords.x1 + " " + viewBoxCoords.y1 + " " + viewBoxCoords.x2 + " " + viewBoxCoords.y2);
         });
-
     var drag = d3.behavior.drag()
-//        .origin(function(d) { return {x: viewBoxCoords.x1, y: viewBoxCoords.y1}; })
-        .on("drag", dragmove);
+        .on("drag", dragmove)
+        .on("dragstart", function() {
+            $(this).css('cursor', 'move');
+        }).on("dragend", function() {
+            $(this).css('cursor', '');
+        });
 
     function dragmove() {
         viewBoxCoords.x1 -= d3.event.dx;
@@ -85,31 +100,10 @@ d3.json("/group/" + group_id + "/graph", function(error, graph) {
     .attr("orient", "auto")
     .append("path")
     .attr("d", "M 0 0 L 10 5 L 0 10 z");
-/*
-  force.on("tick", function(e) {
-      var k = ~~(200  * Math.random());
 
-      // Push nodes toward their designated focus.
-      graph.nodes.forEach(function(o, i) {
-        var foc  = parseInt(o.id) % (zones[0] * zones[1] + 2);
-        w  = 8500;
-        h = 5000;
-
-        var yy = k + foci[foc].y;
-        var xx = k + foci[foc].x;
-        if(xx < (w-2*r))
-            o.x = xx;
-        if(yy < (h-2*r))
-            o.y = yy;
-      });
-  });*/
-
-    var link, node;
     force.start();
-    //for (var i = 1000; i > 0; --i) force.tick();
-    //force.stop();
 
-    link = svg.selectAll(".link-wrap")
+    var link = svg.selectAll(".link-wrap")
         .data(graph.links)
         .enter().append("g")
         .attr("class", "link-wrap")
@@ -119,7 +113,7 @@ d3.json("/group/" + group_id + "/graph", function(error, graph) {
         .style("stroke-width", function(d) { return Math.sqrt(d.value); });
         //.attr("marker-end", "url(#arrowhead)");
 
-    node = svg.selectAll(".node")
+    var node = svg.selectAll(".node")
         .data(graph.nodes)
         .enter().append("g")
         .attr("class", "node")
@@ -129,10 +123,10 @@ d3.json("/group/" + group_id + "/graph", function(error, graph) {
       svg.select("defs").append("pattern")
           .attr("id", "image-" + d.id)
           .attr("x", 0).attr("y",0)
-          .attr("height", 40).attr("width", 40)
+          .attr("height", 2*r).attr("width", 2*r)
           .append("image")
           .attr("x",0).attr("y",0)
-          .attr("height", 40).attr("width", 40)
+          .attr("height", 2*r).attr("width", 2*r)
           .attr("xlink:href", d.img);
     });
     node.append("circle")
@@ -141,8 +135,6 @@ d3.json("/group/" + group_id + "/graph", function(error, graph) {
         .attr("r", r)
         .attr("title", function(d) { return d.name; });
 
-    //node.attr("transform", function(d) { return "translate(" + Math.max(r, Math.min(w - r, d.x))
-    //                                              + "," + Math.max(r, Math.min(h - r, d.y)) + ")"; });
     force.on("tick", function() {
         link.attr("d", function(d) {
           var dx = d.target.x - d.source.x,
@@ -210,8 +202,4 @@ d3.json("/group/" + group_id + "/graph", function(error, graph) {
           });
       };
   }
-
- function zoomed(e) {
-
- }
 });
