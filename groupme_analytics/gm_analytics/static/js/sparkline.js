@@ -37,7 +37,7 @@ function renderSparkline(uid) {
     }
 
 
-    d3.json('/group/1732457/user?limit=75&uid='+uid, function(error, data) {
+    d3.json('/group/' + group_id + '/user?limit=75&uid='+uid, function(error, data) {
         ['likes','messages'].forEach(function(k) {
             sparkchart(data[k], '#spark-' + k + '-' + uid);
         });

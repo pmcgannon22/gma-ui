@@ -155,6 +155,8 @@ CACHES = {
     }
 }
 
+CACHE_ENABLED = False
+
 SESSION_SERIALIZER = 'django.contrib.sessions.serializers.JSONSerializer'
 
 # A sample logging configuration. The only tangible logging

@@ -3,6 +3,7 @@ from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render, render_to_response
 from django.template import RequestContext
 from django.core.cache import cache
+from django.conf import settings
 from libs.groupme_tools.groupme_fetch import get_user_access, get_groups, messages, get_group
 from utils import analysis
 from models import Group, Message, GroupAnalysis
@@ -81,10 +82,10 @@ def group(request, id):
     c['member_map'] = {member[u'user_id']: member[u'nickname'] for member in group_info[u'members']}
     request.session['member_map'] = c['member_map']
 
-    if cache.get('group-%s' % id):
+    if cache.get('group-%s' % id) and settings.CACHE_ENABLED:
         c['group'] = cache.get('group-%s' % id)
         return render(request, 'group.html', c)
-    if request.GET.get('ajaxLoad', '0') == '0':
+    if request.GET.get('ajaxLoad', '0') == '0' and settings.CACHE_ENABLED:
         return render(request, 'group-loader.html', c)
     try:
         group = Group.objects.get(id=id)
@@ -105,7 +106,8 @@ def group(request, id):
             m.group = group
             m.save()
         map(lambda m: save_msg(m), msgs)
-    cache.set('group-%s' % id, group, 180)
+    if settings.CACHE_ENABLED:
+        cache.set('group-%s' % id, group, 180)
     group.save()
     c['group'] = group
     return render(request, 'group.html', c)
@@ -156,16 +158,7 @@ def get_graph_json(request, id):
     group_info = get_group(request.session['token'], id)
     member_map = {member[u'user_id']: (member[u'nickname'], member[u'image_url']) for member in group_info[u'members']}
     analysis = Group.objects.get(id=id).analysis
-    d = json_graph.loads(analysis.like_network)
-    g = nx.Graph()
-    g.add_nodes_from(d)
-    #convert to undirected
-    for u,v,d in d.edges(data=True):
-        if g.has_edge(u,v):
-            g[u][v]['weight']+=d['weight']
-        else:
-            g.add_edge(u,v,d)
-    graph = json.loads(json_graph.dumps(g))
+    graph = json.loads(analysis.like_network)
     graph[u'nodes'] = [{u'id':n[u'id'], u'name':member_map[n[u'id']][0], u'img':member_map[n[u'id']][1]} for n in graph[u'nodes']]
     return HttpResponse(json.dumps(graph), content_type='application/csv')
 
@@ -204,14 +197,16 @@ def get_personal_data(request, id):
         d = datetime.now() + timedelta(days=-days)
         msgs = Message.objects.filter(group=id).filter(author=int(u)).filter(created__gt=d)
 
-        daily_msgs = Counter([m.created.strftime('%Y-%m-%d') for m in msgs])
-        daily_msgs = [{'date': m[0], 'total': m[1]} for m in sorted(daily_msgs.items(), key=itemgetter(0))]
-
-        daily_likes = OrderedDict()
+        daily_likes = {d.strftime("%Y-%m-%d"): 0 for d in (datetime.now() + timedelta(days=-n) for n in range(days+1))} #zeros
         for m in msgs:
-            d = m.created.strftime('%Y-%m-%d')
-            daily_likes[d] = daily_likes.get(d, 0) + m.n_likes
+            if m.n_likes > 0:
+                d = m.created.strftime('%Y-%m-%d')
+                daily_likes[d] += m.n_likes
+        daily_likes = OrderedDict(sorted(daily_likes.items()))
         daily_likes = [{'date':k, 'total':v} for k,v in daily_likes.iteritems()]
+
+        daily_msgs = Counter([m.created.strftime('%Y-%m-%d') for m in msgs])
+        daily_msgs = [{'date': d.strftime("%Y-%m-%d"), 'total': daily_msgs.get(d.strftime("%Y-%m-%d"), 0)} for d in (datetime.now() + timedelta(days=-n) for n in range(days))]
         return HttpResponse(json.dumps({'likes': daily_likes, 'messages': daily_msgs}), content_type='text/json')
 
 @groupme_login_required
@@ -226,7 +221,6 @@ def get_daily_data(request, id):
     daily_likes = Counter(daily_likes)
     daily_msgs = Counter([m.created.strftime('%Y-%m-%d') for m in msgs])
     likes_sorted = daily_likes.most_common(int(limit))
-    print likes_sorted[0]
     msgs_sorted = daily_msgs.most_common(int(limit))
     data = [{'date': m[0], 'Messages': m[1]} for m in msgs_sorted]
     for m in data:
