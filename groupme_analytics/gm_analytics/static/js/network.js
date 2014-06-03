@@ -1,37 +1,79 @@
-var w = 850,
-    h = 500,
-    r = 20,
-    padding = 40; //node radius
-
-var color = d3.scale.category20();
-
-var force = d3.layout.force()
-    .charge(function(d) { return d.weight * -15; })
-//    .linkDistance(325)
-    .gravity(0)
-    .size([w, h]);
-
-var zones = [8, 2]; //[horizontal,vertical] division
-var foci = [{x:0, y:0}, {x:100, y: 100}];
-for(var a=0;a<zones[0];a++) {
-    for(var b=1;b<=zones[1];b++) {
-        var xf = w/zones[0] * a;
-        var yf = h/zones[1] * b;
-        foci.push({x: xf, y: yf});
-    }
-}
-
-var svg = d3.select("#network").append("svg")
-.attr("width", w)
-.attr("height", h)
-.attr("viewBox", "0 0 " + w + " " + h )
-.attr("preserveAspectRatio", "xMinYMin meet");
 
 //group id set at top of group.html template
 d3.json("/group/" + group_id + "/graph", function(error, graph) {
+    var w = 3400,
+        h = 2000,
+        elemWidth = 850,
+        elemHeight = 525,
+        r = 20,
+        color = d3.scale.category20();
+
+    var max_weight = d3.max(graph.links, function(d) { return d.weight; });
+    var force = d3.layout.force()
+        .charge(function(d) { return -120; })
+        .linkDistance(function(a,b,c,d) {
+            return ((max_weight + 1 - a.weight)/max_weight) * (w/7);
+         })
+        .size([w, h]);
+
     force.nodes(graph.nodes)
       .links(graph.links);
 
+    var svgWrap = d3.select("#network").append("svg")
+    .attr("width", elemWidth)
+    .attr("height", elemHeight);
+
+    var viewBoxCoords = {x1: 0, y1: 0, x2: w, y2: h};
+
+    var svg = svgWrap.append("svg")
+        .attr("y", "25px")
+        .attr("width", elemWidth)
+        .attr("viewBox", viewBoxCoords.x1 + " " + viewBoxCoords.y1 + " " + viewBoxCoords.x2 + " " + viewBoxCoords.y2)
+        .attr("preserveAspectRatio", "xMidYMin meet");
+
+
+    function zoom(direction) {
+        //todo: fix zoom in too far
+        var zoomFactor = .2;
+        var n = direction === 'in' ? -1 : 1;
+        var dx = ~~((viewBoxCoords.x2 - viewBoxCoords.x1) * zoomFactor);
+        var dy = ~~((viewBoxCoords.y2 - viewBoxCoords.y1) * zoomFactor);
+        dx = dx > 50 ? dx : 50;
+        dy = dy > 50 ? dy : 50;
+        viewBoxCoords.x1 = viewBoxCoords.x1 - n * dx > 0 ? viewBoxCoords.x1 - n * dx : viewBoxCoords.x1;
+        viewBoxCoords.x2 = viewBoxCoords.x2 + n * dx < w && viewBoxCoords.x2 + n * dx > 0 ? viewBoxCoords.x2 + n * dx : 75;
+        viewBoxCoords.y1 = viewBoxCoords.y1 - n * dy > 0 ? viewBoxCoords.y1 - n * dy : viewBoxCoords.y1;
+        viewBoxCoords.y2 = viewBoxCoords.y2 + n * dy < h && viewBoxCoords.y2 + n * dy > 0 ? viewBoxCoords.y2 + n * dy : 75;
+    }
+
+    svgWrap.append("text")
+        .text("+")
+        .attr("class", "zoom in")
+        .attr("x", elemWidth - 30).attr("y",15)
+        .on("click", function() {
+            zoom('in');
+            svg.attr("viewBox", viewBoxCoords.x1 + " " + viewBoxCoords.y1 + " " + viewBoxCoords.x2 + " " + viewBoxCoords.y2);
+        });
+
+    svgWrap.append("text")
+        .text("–")
+        .attr("class", "zoom out")
+        .attr("x", elemWidth - 10).attr("y",15)
+        .on("click", function() {
+            zoom('out');
+            svg.attr("viewBox", viewBoxCoords.x1 + " " + viewBoxCoords.y1 + " " + viewBoxCoords.x2 + " " + viewBoxCoords.y2);
+        });
+
+    var drag = d3.behavior.drag()
+//        .origin(function(d) { return {x: viewBoxCoords.x1, y: viewBoxCoords.y1}; })
+        .on("drag", dragmove);
+
+    function dragmove() {
+        viewBoxCoords.x1 -= d3.event.dx;
+        viewBoxCoords.y1 -= d3.event.dy
+        svg.attr("viewBox", viewBoxCoords.x1 + " " + viewBoxCoords.y1 + " " + viewBoxCoords.x2 + " " + viewBoxCoords.y2);
+    }
+    svgWrap.call(drag);
 
     svg.append("defs").append("marker")
     .attr("id", "arrowhead")
@@ -43,13 +85,15 @@ d3.json("/group/" + group_id + "/graph", function(error, graph) {
     .attr("orient", "auto")
     .append("path")
     .attr("d", "M 0 0 L 10 5 L 0 10 z");
-
+/*
   force.on("tick", function(e) {
       var k = ~~(200  * Math.random());
 
       // Push nodes toward their designated focus.
       graph.nodes.forEach(function(o, i) {
         var foc  = parseInt(o.id) % (zones[0] * zones[1] + 2);
+        w  = 8500;
+        h = 5000;
 
         var yy = k + foci[foc].y;
         var xx = k + foci[foc].x;
@@ -58,50 +102,48 @@ d3.json("/group/" + group_id + "/graph", function(error, graph) {
         if(yy < (h-2*r))
             o.y = yy;
       });
-  });
+  });*/
 
-  var link, node;
-  setTimeout(function() {
-        force.start();
-        for (var i = 100; i > 0; --i) force.tick();
-        force.stop();
+    var link, node;
+    force.start();
+    //for (var i = 1000; i > 0; --i) force.tick();
+    //force.stop();
 
-        link = svg.selectAll(".link-wrap")
-            .data(graph.links)
-            .enter().append("g")
-            .attr("class", "link-wrap")
-            .append("path")
-            .style("display", function(d) { console.log(d); return "";})
-            .attr("class", "link")
-            .style("stroke-width", function(d) { return Math.sqrt(d.value); });
-            //.attr("marker-end", "url(#arrowhead)");
+    link = svg.selectAll(".link-wrap")
+        .data(graph.links)
+        .enter().append("g")
+        .attr("class", "link-wrap")
+        .append("path")
+        .style("display", function(d) { console.log(d); return "";})
+        .attr("class", "link")
+        .style("stroke-width", function(d) { return Math.sqrt(d.value); });
+        //.attr("marker-end", "url(#arrowhead)");
 
-        node = svg.selectAll(".node")
-            .data(graph.nodes)
-            .enter().append("g")
-            .attr("class", "node")
-            .on("mouseover", fade(.1)).on("mouseout", fade(1));
+    node = svg.selectAll(".node")
+        .data(graph.nodes)
+        .enter().append("g")
+        .attr("class", "node")
+        .on("mouseover", fade(.1)).on("mouseout", fade(1));
 
-        graph.nodes.forEach(function(d, i) {
-          svg.select("defs").append("pattern")
-              .attr("id", "image-" + d.id)
-              .attr("x", 0).attr("y",0)
-              .attr("height", 40).attr("width", 40)
-              .append("image")
-              .attr("x",0).attr("y",0)
-              .attr("height", 40).attr("width", 40)
-              .attr("xlink:href", d.img);
-        });
-        node.append("circle")
-            .attr("xlink:href", function(d) { return d.img; })
-            .attr("class", "img-clip")
-            .attr("cx", 0)
-            .attr("cy", 0)
-            .attr("r", r)
-            .attr("title", function(d) { return d.name; });
+    graph.nodes.forEach(function(d, i) {
+      svg.select("defs").append("pattern")
+          .attr("id", "image-" + d.id)
+          .attr("x", 0).attr("y",0)
+          .attr("height", 40).attr("width", 40)
+          .append("image")
+          .attr("x",0).attr("y",0)
+          .attr("height", 40).attr("width", 40)
+          .attr("xlink:href", d.img);
+    });
+    node.append("circle")
+        .attr("xlink:href", function(d) { return d.img; })
+        .attr("class", "img-clip")
+        .attr("r", r)
+        .attr("title", function(d) { return d.name; });
 
-        node.attr("transform", function(d) { return "translate(" + Math.max(r, Math.min(w - r, d.x))
-                                                      + "," + Math.max(r, Math.min(h - r, d.y)) + ")"; });
+    //node.attr("transform", function(d) { return "translate(" + Math.max(r, Math.min(w - r, d.x))
+    //                                              + "," + Math.max(r, Math.min(h - r, d.y)) + ")"; });
+    force.on("tick", function() {
         link.attr("d", function(d) {
           var dx = d.target.x - d.source.x,
               dy = d.target.y - d.source.y,
@@ -110,6 +152,11 @@ d3.json("/group/" + group_id + "/graph", function(error, graph) {
                   d.target.x + "," + d.target.y;
         });
 
+        node.selectAll('circle').attr("cx", function(d) { return d.x = Math.max(r, Math.min(w - r, d.x)); })
+            .attr("cy", function(d) { return d.y = Math.max(r, Math.min(h - r, d.y)); });
+    });
+
+    force.on("end", function() {
         svg.selectAll(".link-wrap").each(function(d, i) {
               var t = d3.select(this);
               var n = t.select(".link").node();
@@ -120,12 +167,17 @@ d3.json("/group/" + group_id + "/graph", function(error, graph) {
 
         svg.selectAll(".img-clip")
             .attr("fill", function(d) { return "url(#image-" + d.id + ")"; });
+
+        var startBoxX = d3.extent(graph.nodes, function(n) { return n.x; });
+        var startBoxY = d3.extent(graph.nodes, function(n) { return n.y; });
+        var xWidth = (startBoxX[1] - startBoxX[0]);
+        viewBoxCoords = {x1: startBoxX[0], x2: xWidth + 4*r, y1: startBoxY[0] - 4 * r, y2: (startBoxY[1] - startBoxY[0] + 8*r)};
+        svg.attr("viewBox", viewBoxCoords.x1 + " " + viewBoxCoords.y1 + " " + viewBoxCoords.x2 + " " + viewBoxCoords.y2);
         $("svg circle.img-clip").tooltip({
             'container': 'body',
             'placement': 'top'
         });
-
-  }, 50);
+    });
 
 
   function fade(opacity) {
@@ -159,15 +211,7 @@ d3.json("/group/" + group_id + "/graph", function(error, graph) {
       };
   }
 
-  function checkCollisions(nodes, links) {
-      nodes.forEach(function(e, i, a) {
-          nodes.forEach(function(ee, ii, aa) {
-              var dx = e.x - ee.x,
-                  dy = e.y - ee.y;
-              if(Math.sqrt(dx*dx - dy*dy) < 2*r)
-                  return false;
-          });
-      });
-      return true;
-  }
+ function zoomed(e) {
+
+ }
 });

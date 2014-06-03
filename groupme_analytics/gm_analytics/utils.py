@@ -7,8 +7,6 @@ from models import GroupAnalysis
 from collections import Counter
 
 def analysis(request, msgs, group_info):
-    print len(msgs)
-    print group_info
     members = group_info[u'members']
     member_map = request.session['member_map']
 
