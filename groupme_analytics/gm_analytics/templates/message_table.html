@@ -20,7 +20,7 @@
                 {{ message.created|date:"N j, o - P" }}
             </a>
             </td>
-            <td>{{ message.text }} {% if message.img %}
+            <td>{{ message.text|default_if_none:"" }} {% if message.img %}
                 – <a target="_blank" href="{{ message.img }}">attachment</a>
                 {% endif %}
             </td>
