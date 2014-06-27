@@ -21,7 +21,7 @@
             </a>
             </td>
             <td>{{ message.text|default_if_none:"" }} {% if message.img %}
-                – <a target="_blank" href="{{ message.img }}">attachment</a>
+                {% if message.text %} – {% endif %}<a target="_blank" href="{{ message.img }}">attachment</a>
                 {% endif %}
             </td>
             <td>{{ member_map|get_item:message.author }}</td>
