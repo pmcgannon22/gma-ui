@@ -49,15 +49,18 @@ var group_id = {{ group_info.id }};
 
     <div class="members col-md-4">
       <h4>Members ({{ group_info.members|length }})</h4>
-      <h6><em>total msgs | likes rec/given | ratio</em></h6>
+      <h6><em>total msgs | likes rec/given | likes/msg | rec/given ratio</em></h6>
         <div class="list-group">
         {% for member in group_info.members %}
           <span data-uid="{{ member.user_id }}" class="list-group-item">
     	  <h6>{{ member.nickname }}</h6>
     	     <span class="list-group-item-text">
-    	            <small class="total-messages">{{ group.analysis.msgs_per|get_item:member.user_id }} | </small>
-    	            <small>{{ group.analysis.likes_rec|get_item:member.user_id }}/{{ group.analysis.likes_give|get_item:member.user_id }} | </small>
+	        {% with total=group.analysis.msgs_per|get_item:member.user_id received=group.analysis.likes_rec|get_item:member.user_id %}
+    	            <small class="total-messages">{{ total }} | </small>
+    	            <small>{{ received }}/{{ group.analysis.likes_give|get_item:member.user_id }} | </small>
+		    <small>{{ received|divide:total|floatformat:3 }} | </small>
     	            <small>{{ group.analysis.ratio|get_item:member.user_id|floatformat:3}}</small>
+		{% endwith %}
             </span>
             <div class="user-sparkcharts" id="user-sparkcharts-{{ member.user_id }}">
                 <hr />

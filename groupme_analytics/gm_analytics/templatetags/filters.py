@@ -36,3 +36,12 @@ def dictsort_val(value):
         return sorted(value.iteritems(), key=operator.itemgetter(1), reverse=True)
     else:
         return value.items()
+
+@register.filter
+def divide(numer, denom):
+    try:
+        return float(numer)/float(denom)
+    except:
+        return 'NaN'
+
+    
