@@ -16,6 +16,7 @@ from datetime import datetime, timedelta
 from operator import itemgetter
 import json
 import string
+import re
 import random
 from collections import Counter, OrderedDict
 
@@ -188,6 +189,27 @@ def get_conversation(request, id):
     messages = Message.objects.filter(group=id).filter(created__lt=d2).filter(created__gt=d).order_by('created')
     return render(request, 'conversation.html',
         {'day1':d, 'day2':d2, 'msgs':messages, 'member_map':member_map, 'self_id':request.session[u'user_id'], 'avatar_map':avatar_map})
+
+@groupme_login_required
+def get_names_history(request, id):
+    group_info = get_group(request.session['token'], id)
+    sys_msgs = Message.objects.filter(group=id).filter(author='0').order_by('created')
+    changes = filter(lambda m: "group's name" in m.text, sys_msgs)
+    m = re.compile("name to (.+)")
+    last = datetime.fromtimestamp(group_info['created_at']).strftime("%Y-%m-%d")
+    data = []
+    print sys_msgs[:10]
+    for i, msg in enumerate(changes):
+        if i+1 < len(changes):
+            end = changes[i+1].created.strftime("%Y-%m-%d")
+        else:
+            end = datetime.today().strftime("%Y-%m-%d")
+        data.append({
+            'name': m.search(msg.text).groups()[0],
+            'begin': msg.created.strftime("%Y-%m-%d"),
+            'end': end
+        })
+    return HttpResponse(json.dumps(data), content_type="text/json")
 
 @groupme_login_required
 def get_personal_data(request, id):

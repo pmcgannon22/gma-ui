@@ -16,5 +16,6 @@ urlpatterns = patterns('',
                        url(r'^group/(?P<id>\d+)/messages/conversation$', views.get_conversation, name='msgs_text'),
                        url(r'^group/(?P<id>\d+)/dailydata$', views.get_daily_data, name="daily_data"),
                        url(r'^group/(?P<id>\d+)/user$', views.get_personal_data, name="personal_data"),
+                       url(r'^group/(?P<id>\d+)/names$', views.get_names_history, name="names_history"),
                        url(r'^network$', views.network),
 )

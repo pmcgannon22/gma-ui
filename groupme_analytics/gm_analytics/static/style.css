@@ -352,3 +352,40 @@ Messages Page
   box-shadow: 1px 2px 1px rgba(0, 0, 0, 0.2);
   z-index: 100;
 }
+
+#names .axis path,
+#names .axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+#names  .line {
+  fill: none;
+  stroke: #000;
+  stroke-width: 1.5px;
+}
+
+#names  .overlay {
+  fill: none;
+  pointer-events: all;
+}
+
+#names .focus text {
+    font-size: 13px;
+    text-anchor: middle;
+}
+
+#names .focus .current {
+    font-weight: bold;
+    font-size: 15px;
+
+}
+
+#names .name-date {
+    font-size: 11px;
+}
+
+#names .tracker {
+    stroke: black;
+}
