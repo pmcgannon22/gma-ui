@@ -12,7 +12,7 @@
                 <img src="{{ group.image_url|default_if_none:"https://lh4.ggpht.com/EyZuxEz7W8N2U6t97xOlf58nzRT7-EVV_dP-eDoXQSaQ6WvYvAomhP4fWL8MxpmyDw=w300" }}">
             </a>
         </div>
-        <h5><a href="group/{{ group.id }}">{{ group.name }}</a></h5>
+        <h5><a href="group/{{ group.id }}">{{ group.name }} ({{ group.messages.count }})</a></h5>
     </div>
     {% endfor %}
 </div>
