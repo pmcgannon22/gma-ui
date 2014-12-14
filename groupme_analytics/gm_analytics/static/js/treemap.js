@@ -44,7 +44,7 @@ d3.json("/group/" + group_id + "/percentages", function(error, json) {
         .attr("y", function(d) { return d.y + d.dy/2; })
         .attr("text-anchor", "middle")
         .style("font-size", function(d) { return Math.min(12, fitText(this, d.dx, d.dy, 12)); })
-        .style("display", function(d) { return (d.dy < 35 || d.dx < 50) ? "none" : ""; });
+        .style("display", function(d) { return (d.dy < 55 || d.dx < 50) ? "none" : ""; });
 
     $(".cell > rect").tooltip({
             'container':'body',

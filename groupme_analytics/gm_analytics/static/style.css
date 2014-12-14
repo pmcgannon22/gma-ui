@@ -138,7 +138,7 @@ body > .container {
 
 #network .edge-weight {
     display: none;
-    font-size: 20px;
+    font-size: 30px;
     font-weight: bold;
     stroke: red;
     stroke-width: .25px;
@@ -358,6 +358,10 @@ Messages Page
   fill: none;
   stroke: #000;
   shape-rendering: crispEdges;
+}
+
+#names .tick text {
+    font-size: 10px;
 }
 
 #names  .line {

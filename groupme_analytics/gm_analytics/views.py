@@ -4,7 +4,7 @@ from django.shortcuts import render, render_to_response
 from django.template import RequestContext
 from django.core.cache import cache
 from django.conf import settings
-from libs.groupme_tools.groupme_fetch import get_user_access, get_groups, messages, get_group
+from libs.groupme_tools.groupme_fetch import get_user_access, get_groups, msg_concurrent, get_group
 from utils import analysis
 from models import Group, Message, GroupAnalysis
 from forms import LoginForm, MessageForm
@@ -17,6 +17,7 @@ from operator import itemgetter
 import json
 import string
 import re
+import pdb
 import random
 from collections import Counter, OrderedDict
 
@@ -88,20 +89,37 @@ def group(request, id):
         return render(request, 'group.html', c)
     if request.GET.get('ajaxLoad', '0') == '0' and settings.CACHE_ENABLED:
         return render(request, 'group-loader.html', c)
+    get_attachment = lambda x: x[0].get('url', None) if len(x) else None
     try:
         group = Group.objects.get(id=id)
-        msgs = list(Message.objects.filter(group=group))
+        msgs = list(Message.objects.filter(group=group).order_by('created'))
+        if msgs:
+            after_id = msgs[-1].id
+            if not str(after_id).isdigit():
+                after_id = 0
+            elif str(after_id) != str(group_info[u'messages'][u'last_message_id']):
+                msgs += [Message(
+                        id=msg[u'id'],
+                        created=datetime.fromtimestamp(float(msg[u'created_at'])),
+                        author=msg[u'user_id'] if msg[u'user_id'] != 'system' else 0,
+                        text=msg[u'text'],
+                        img=get_attachment(msg[u'attachments']),
+                        likes=msg[u'favorited_by'],
+                        n_likes=len(msg[u'favorited_by'])
+                        ) for msg in msg_concurrent(request.session['token'], id, after_id=after_id)]
+
         group.analysis = analysis(request, msgs, group_info)
+
     except Group.DoesNotExist:
-        get_attachment = lambda x: x[0].get('url', None) if len(x) else None
         msgs = [Message(
+                id=msg[u'id'],
                 created=datetime.fromtimestamp(float(msg[u'created_at'])),
                 author=msg[u'user_id'] if msg[u'user_id'] != 'system' else 0,
                 text=msg[u'text'],
                 img=get_attachment(msg[u'attachments']),
                 likes=msg[u'favorited_by'],
                 n_likes=len(msg[u'favorited_by'])
-                ) for msg in messages(request.session['token'], id)]
+                ) for msg in msg_concurrent(request.session['token'], id, n_workers=(group_info[u'messages'][u'count']/50))]
         group = Group(id=id, analysis=analysis(request, msgs, group_info))
         def save_msg(m):
             m.group = group
@@ -198,7 +216,6 @@ def get_names_history(request, id):
     m = re.compile("name to (.+)")
     last = datetime.fromtimestamp(group_info['created_at']).strftime("%Y-%m-%d")
     data = []
-    print sys_msgs[:10]
     for i, msg in enumerate(changes):
         if i+1 < len(changes):
             end = changes[i+1].created.strftime("%Y-%m-%d")

@@ -3,7 +3,7 @@
 d3.json("/group/" + group_id + "/graph", function(error, graph) {
     var w = 3400,
         h = 2000,
-        elemWidth = 850,
+        elemWidth = 1100,
         elemHeight = 525,
         r = 30,
         color = d3.scale.category20();

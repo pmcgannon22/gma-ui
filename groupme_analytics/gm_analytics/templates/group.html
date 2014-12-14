@@ -88,15 +88,7 @@ var group_id = {{ group_info.id }};
         <h3>Group Connections <small><span style="font-size: 140%; color: red;">&#9829;</span> <span style="color: #FFCC6C;">given</span>/<span style="color: #00CDCD;">received</span></small>
     </div>
     <div class="row">
-        <div class="col-md-9" id="network"></div>
-        <div class="col-md-3 pagerank">
-            <h3>Value</h3>
-            <ol>
-                {% for key, value in group.analysis.prank|dictsort_val %}
-                <li><strong>{{ member_map|get_item:key }}: </strong>{{ value|floatformat:6 }}</li>
-                {% endfor %}
-            </ol>
-        </div>
+        <div class="col-md-12" id="network"></div>
     </div>
 
     <div class="page-header">

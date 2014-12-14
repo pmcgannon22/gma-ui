@@ -17,6 +17,7 @@ class Group(models.Model):
         return self.id
 
 class Message(models.Model):
+    id = models.PositiveIntegerField(primary_key=True)
     created = models.DateTimeField()
     group = models.ForeignKey(Group)
     author = models.PositiveIntegerField()
