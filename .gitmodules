@@ -1,0 +1,3 @@
+[submodule "groupme_analytics/libs/groupme-tools"]
+	path = groupme_analytics/libs/groupme-tools
+	url = https://github.com/pmcgannon22/groupme-tools.git
