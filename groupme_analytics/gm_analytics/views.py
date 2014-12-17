@@ -12,7 +12,7 @@ from forms import LoginForm, MessageForm
 import networkx as nx
 from networkx.readwrite import json_graph
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from operator import itemgetter
 import json
 import string
@@ -27,6 +27,51 @@ import logging
 logger = logging.getLogger(__name__)
 
 def network(request):
+    id = "1732457"
+    start = datetime(2012, 8, 1)
+    end = datetime(2012, 8, 8)
+    week = timedelta(days=7)
+    points = {}
+    while start < datetime.today():
+        msgs = Message.objects.filter(group=id).filter(created__gt=start).filter(created__lt=end)
+        count = len(msgs)
+        likes = sum([int(m.n_likes) for m in msgs])
+        if count > 0:
+            avg = float(likes)/count
+        else:
+            avg = 0
+        print avg
+
+        for m in msgs:
+            if m.author in points:
+                points[m.author] += m.n_likes - avg
+            else:
+                points[m.author] = m.n_likes - avg
+        start = start + week
+        end = end + week
+    spoints = sorted(points.items(), key=itemgetter(1))
+    for name, score in spoints:
+        print "%s: %f" % (name, score)
+    '''
+    points = {}
+    val = 1
+    last = msgs[0].n_likes
+    for msg in msgs:
+        if msg.n_likes != last:
+            last = msg.n_likes
+            val += 1
+        if points.get(msg.author, False):
+            points[msg.author] += val
+        else:
+            points[msg.author] = val
+
+    sorted_points = sorted(points.items(), key=itemgetter(1))
+    total = 0
+    for author, pts in sorted_points:
+        print "%s: %d" % (author, pts)
+        total += pts
+    '''
+
     return render_to_response("network.html", {}, RequestContext(request))
 
 def groupme_login_required(function):
@@ -119,7 +164,7 @@ def group(request, id):
                 img=get_attachment(msg[u'attachments']),
                 likes=msg[u'favorited_by'],
                 n_likes=len(msg[u'favorited_by'])
-                ) for msg in msg_concurrent(request.session['token'], id, n_workers=(group_info[u'messages'][u'count']/50))]
+                ) for msg in msg_concurrent(request.session['token'], id, n_workers=(group_info[u'messages'][u'count']/50 + 1))]
         group = Group(id=id, analysis=analysis(request, msgs, group_info))
         def save_msg(m):
             m.group = group
@@ -226,6 +271,13 @@ def get_names_history(request, id):
             'begin': msg.created.strftime("%Y-%m-%d"),
             'end': end
         })
+
+    if len(changes) == 0:
+        data = [{
+            'name': group_info['name'],
+            'begin': date.fromtimestamp(float(group_info['created_at'])).strftime("%Y-%m-%d"),
+            'end': date.today().strftime("%Y-%m-%d")
+        }]
     return HttpResponse(json.dumps(data), content_type="text/json")
 
 @groupme_login_required
