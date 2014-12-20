@@ -12,10 +12,10 @@
             <img src="{{ avatar_map|get_item:m.author }}" />
           </div>
           <div class="messages">
-            <p>{{ m.text }}{% if m.img %}<br /> – <a target="_blank" href="{{ m.img }}">attachment</a>{% endif %}</p>
+            <p>{{ m.text|default_if_none:"" }}{% if m.img %}<br /> – <a target="_blank" href="{{ m.img }}">attachment</a>{% endif %}</p>
             <time datetime="{{ m.created|date:"c"}}">{{ member_map|get_item:m.author|default_if_none:"User_Not_In_Group"|fname:"F Li" }} • {{ m.created|date:"P" }}</time>
             {% if m.n_likes > 0 %}
-            <small class="likes">{{ m.n_likes }} <span class="glyphicon glyphicon-heart" data-toggle="tooltip" data-placement="top"
+            <small class="likes">{{ m.n_likes }} <span class="glyphicon glyphicon-heart" data-toggle="tooltip" data-placement="right"
                         title="{% for l in m.likes %}{{ member_map|get_item:l|default_if_none:"User_Not_In_Group" }}{% if not forloop.last %}, {% endif %}{% endfor %}"></span></small>
             {% endif %}
           </div>

@@ -1,7 +1,7 @@
 {% load filters %}
-
+{% load staticfiles %}
 <h4 style="margin-bottom: 2px;">Query matched {{ messages|length }} messages.</h4>
-<small>Click the date for message context.</small>
+<small>Click the date for message context. Hover over likes to see who liked it.</small>
 
 <table class="table table-striped">
     <thead>
@@ -20,13 +20,32 @@
                 {{ message.created|date:"N j, o - P" }}
             </a>
             </td>
-            <td>{{ message.text|default_if_none:"" }} {% if message.img %}
-                {% if message.text %} – {% endif %}<a target="_blank" href="{{ message.img }}">attachment</a>
+            <td>{{ message.text|default_if_none:"" }}
+                {% if message.img %}
+                {% if message.text %} – {% endif %}<a class="lightbox-link" href="{{message.img}}" id="lightbox-{{ message.id }}">image</a>
                 {% endif %}
             </td>
             <td>{{ member_map|get_item:message.author }}</td>
-            <td>{{ message.n_likes }}</td>
+            <td>
+                <span class="likes-tooltip" date-toggle="tooltip" data-placement="left" title="{% for l in message.likes %}{{ member_map|get_item:l|default_if_none:"User_Not_In_Group" }}{% if not forloop.last %}, {% endif %}{% endfor %}">
+                {{ message.n_likes }}
+                </span>
+            </td>
         </tr>
         {% endfor %}
     </tbody>
 </table>
+
+<script>
+setTimeout(function() {
+    $(".likes-tooltip").tooltip({'container':'body'});
+
+    $(document).delegate(".lightbox-link", 'click', function(event) {
+        event.preventDefault();
+        $(this).ekkoLightbox();
+    });
+
+}, 200);
+
+
+</script>

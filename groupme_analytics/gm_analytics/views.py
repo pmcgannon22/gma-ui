@@ -28,6 +28,7 @@ logger = logging.getLogger(__name__)
 
 def network(request):
     id = "1732457"
+    '''
     start = datetime(2012, 8, 1)
     end = datetime(2012, 8, 8)
     week = timedelta(days=7)
@@ -52,7 +53,6 @@ def network(request):
     spoints = sorted(points.items(), key=itemgetter(1))
     for name, score in spoints:
         print "%s: %f" % (name, score)
-    '''
     points = {}
     val = 1
     last = msgs[0].n_likes
@@ -181,15 +181,18 @@ def msq_query(request, id):
     c = {}
     group_info = get_group(request.session['token'], id)
     c['member_map'] = {member[u'user_id']: member[u'nickname'] for member in group_info[u'members']}
-    form = MessageForm(request.GET, members=c['member_map'])
+    form = MessageForm(request.GET, created=group_info['created_at'], members=c['member_map'])
     if form.is_valid():
         d = form.cleaned_data
-        c['messages'] = Message.objects.filter(group=id).filter(
-                            created__lte=d['end_date']).filter(
-                            created__gte=d['start_date']).filter(
-                            n_likes__gte=d['min_likes']).filter(
-                            n_likes__lte=d['max_likes']).filter(
-                            author__in=d['sent_by'])
+
+        c['messages'] = Message.objects.filter(group=id, created__lte=d['end_date'],
+                            created__gte=d['start_date'],
+                            n_likes__gte=d['min_likes'],
+                            n_likes__lte=d['max_likes'],
+                            author__in=d['sent_by'],
+                            text__icontains=d['text_contains'])
+        if d['text_not_contain']:
+            c['messages'] = c['messages'].exclude(text__icontains=d['text_not_contain'])
         if d['img']:
             c['messages'] = c['messages'].exclude(img__isnull=True)
         if d['random']:
@@ -210,7 +213,7 @@ def group_messages(request, id):
     group_info = get_group(request.session['token'], id)
     c['member_map'] = {member[u'user_id']: member[u'nickname'] for member in group_info[u'members']}
     c['group_info'] = group_info
-    c['form'] = MessageForm(members=c['member_map'])
+    c['form'] = MessageForm(created=group_info['created_at'], members=c['member_map'])
     try:
         c['group'] = Group.objects.get(id=id)
     except Group.DoesNotExist:
@@ -279,6 +282,26 @@ def get_names_history(request, id):
             'end': date.today().strftime("%Y-%m-%d")
         }]
     return HttpResponse(json.dumps(data), content_type="text/json")
+
+def get_users(request, id):
+    group_info = get_group(request.session['token'], id)
+    users = []
+    group = Group.objects.get(id=id)
+    for member in group_info[u'members']:
+        uid = member['user_id']
+        users.append({
+            'user_id': uid,
+            'nickname': member['nickname'],
+            'image_url': member['image_url'],
+            'msgs_per': group.analysis.msgs_per[uid],
+            'msg_perc': group.analysis.msg_perc[uid],
+            'likes_rec': group.analysis.likes_rec[uid],
+            'likes_give': group.analysis.likes_give[uid],
+            'ratio': group.analysis.ratio[uid],
+            'prank': group.analysis.prank[uid]
+        })
+
+    return HttpResponse(json.dumps(users), content_type="text/json")
 
 @groupme_login_required
 def get_personal_data(request, id):

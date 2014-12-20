@@ -40,13 +40,13 @@ var group_id = {{ group_info.id }};
 </script>
 <div class="container">
     <div class="page-header">
-      <h2>{{ group_info.name }} <small>Created: {{ group_info.created_at|ftimestamp:"%m/%d/%Y" }}, {{ group_info.messages.count|intcomma }} total messages </small></h2>
+      <h2>{{ group_info.name }}</h2>
     </div>
   <div class="row">
     <div id="group-photo" class="col-md-8">
       <img src="{{ group_info.image_url|default_if_none:"http://www.bapa.org/uploads/Image/GroupMe_logo_lockup_horizontal.jpg" }}">
     </div>
-
+<!--
     <div class="members col-md-4">
       <h4>Members ({{ group_info.members|length }})</h4>
       <h6><em>total msgs | likes rec/given | likes/msg | rec/given ratio</em></h6>
@@ -60,6 +60,7 @@ var group_id = {{ group_info.id }};
     	            <small>{{ received }}/{{ group.analysis.likes_give|get_item:member.user_id }} | </small>
 		    <small>{{ received|divide:total|floatformat:3 }} | </small>
     	            <small>{{ group.analysis.ratio|get_item:member.user_id|floatformat:3}}</small>
+            <small>{{ group.analysis.prank|get_item:member.user_id }}</small>
 		{% endwith %}
             </span>
             <div class="user-sparkcharts" id="user-sparkcharts-{{ member.user_id }}">
@@ -82,8 +83,43 @@ var group_id = {{ group_info.id }};
          {% endfor %}
         </div>
     </div>
+    {{ group_info }}
+    -->
+
+    <div class="group-preview col-md-4">
+
+        <h3>Created: <span style="font-weight: normal;">{{ group_info.created_at|ftimestamp:"%B %d, %Y" }}</span></h3>
+        <p>by {{ member_map|get_item:group_info.creator_user_id }}
+        <h4>{{ group_info.messages.count|intcomma }} <span style="font-weight: normal;">total messages</span> </h4>
+        <h4>{{ group_info.members|length }} <span style="font-weight: normal;">members</span> </h4>
+
+
+        <h5>Last Message</h5>
+        <blockquote>
+            <p>{{ group_info.messages.preview.text|truncatechars:185 }}</p>
+            <footer><cite title="{{ group_info.messages.preview.nickname }}">{{ group_info.messages.preview.nickname }}</cite>, <span style="font-size: .75em;">{{ group_info.messages.last_message_created_at|ftimestamp:"%I:%M, %m/%d/%Y" }}</span></footer>
+        </blockquote>
+    </div>
 </div>
  {% block group_content %}
+    <div class="page-header" id="members-list">
+        <h3>Members</h3>
+
+        <select class="selectpicker" id="member-sort">
+            <option data-hidden="true">Sort By</option>
+            <option value="nickname">Name</option>
+            <option value="prank">PowerRank</option>
+            <option value="msgs_per">Messages Sent</option>
+            <option value="likes_rec">Likes Received</option>
+            <option value="likes_give">Likes Given</option>
+        </select>
+    </div>
+
+    <div class="row">
+        <div id="overview"></div>
+    </div>
+
+
     <div class="page-header">
         <h3>Group Connections <small><span style="font-size: 140%; color: red;">&#9829;</span> <span style="color: #FFCC6C;">given</span>/<span style="color: #00CDCD;">received</span></small>
     </div>
@@ -119,9 +155,14 @@ var group_id = {{ group_info.id }};
         <div id="names"></div>
     </div>
 
+    <script>
+        $('.selectpicker').selectpicker();
+    </script>
+
     <script src="{% static "js/network.js" %}"></script>
     <script src="{% static "js/treemap.js" %}"></script>
     <script src="{% static "js/names.js" %}"></script>
+    <script src="{% static "js/overview.js" %}"></script>
     </div>
 </div>
 {% endblock %}

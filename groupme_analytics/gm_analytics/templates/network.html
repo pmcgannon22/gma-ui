@@ -4,16 +4,95 @@
 
 {% block extrahead %}
 <script src="{% static "js/d3.layout.cloud.js" %}"></script>
+
+<style>
+
+body {
+  font: 10px sans-serif;
+}
+
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+.line {
+  fill: none;
+  stroke: #000;
+  stroke-width: 1.5px;
+}
+
+.overlay {
+  fill: none;
+  pointer-events: all;
+}
+
+.focus text {
+    font-size: 1.3em;
+    text-anchor: middle;
+}
+
+.focus .current {
+    font-weight: bold;
+    font-size: 1.6em;
+
+}
+
+.name-date {
+    font-size: .9em;
+}
+
+.tracker {
+    stroke: black;
+}
+
+
+/***OVERVIEW***/
+
+#overview {
+    position: relative;
+}
+
+.user-info {
+    padding: 10px;
+    position: absolute;
+}
+
+.user-info .user-text {
+    margin-left: 10px;
+    width: 120px;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+.user-info .user-text p:first-child {
+    font-size: 1.2em;
+    margin-bottom: 4px;
+    font-style: bold;
+}
+
+.user-info .user-text p {
+    margin-bottom: 1px;
+}
+
+.user-info img {
+    border: 1px solid gray;
+}
+
+</style>
+
 {% endblock %}
 
 {% block content %}
 
 <div class="container">
     <div class="row">
-        <div id="cloud"></div>
+        <div id="overview"></div>
     </div>
 </div>
 
-<script src="{% static "js/wordcloud.js" %}"></script>
+<script src="{% static "js/overview.js" %}"></script>
 
 {% endblock %}

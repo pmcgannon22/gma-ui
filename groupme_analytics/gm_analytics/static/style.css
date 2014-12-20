@@ -89,6 +89,7 @@ body > .container {
 
 .user-sparkcharts {
     display: none;
+    width: 250px;
 }
 
 .user-sparkcharts hr {
@@ -99,7 +100,20 @@ body > .container {
 .user-sparkcharts .sparkchart-wrap {
     margin-top: 5px;
     display: inline-block;
-    width: 40%;
+    width: 50%;
+}
+
+.group-preview {
+    height: 390px;
+}
+
+.group-preview h3 {
+    margin-bottom: 0px;
+}
+
+.group-preview > h5 {
+    margin-top: 25px;
+    font-style: italic;
 }
 
 .members .list-group-item .sparkline {
@@ -159,6 +173,48 @@ body > .container {
     cursor: pointer;
 }
 
+#overview {
+    font: 10px sans-serif;
+    position: relative;
+}
+
+#overview .user-info {
+    padding: 10px;
+    position: absolute;
+}
+
+#overview .user-info .user-text {
+    margin-left: 10px;
+    width: 120px;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+#overview .user-info .user-text p:first-child {
+    font-size: 1.2em;
+    margin-bottom: 4px;
+    font-style: bold;
+}
+
+#overview .user-info .user-text p {
+    margin-bottom: 1px;
+}
+
+#overview .user-info img {
+    border: 1px solid gray;
+    cursor: pointer;
+}
+
+#members-list .bootstrap-select {
+    float: right;
+    margin-top:-35px;
+}
+
+.user-sparkcharts .sparkline {
+    fill: none;
+    stroke: #000;
+    stroke-width: 0.5px;
+}
 
 /*
 Messages Page
@@ -392,4 +448,13 @@ Messages Page
 
 #names .tracker {
     stroke: black;
+}
+
+.ekko-lightbox-container img {
+    width: 100%;
+    height: 100%;
+}
+
+.ekko-lightbox-container body {
+    text-align: center;
 }

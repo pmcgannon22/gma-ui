@@ -4,7 +4,18 @@
 {% load humanize %}
 
 {% block extrahead %}
+
+<script src="{% static "lib/ekko-lightbox.min.js" %}"></script>
+<link href="{% static "lib/ekko-lightbox.min.css" %}" rel="stylesheet">
+
 {{ block.super }}
+
+<style>
+#conversation-finder {
+    width: 200px;
+    margin-top: 10px;
+}
+</style>
 
 {{ form.media }}
 
@@ -49,6 +60,34 @@ $(function() {
 
 <div class="row">
     <div class="col-md-9" id="daily"></div>
+</div>
+
+<div class="row">
+    <div class="form-group">
+        <div class='col-sm-6'>
+            <div class="form-group">
+                <label>Click a point on the graph to view that day's conversation, or pick a specific date.</label>
+                <div class='input-group date' id='conversation-finder'>
+                    <input type='text' class="form-control" />
+                    <span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span>
+                </span>
+            </div>
+        </div>
+    </div>
+    <script type="text/javascript">
+    $(function () {
+        $('#conversation-finder').datetimepicker({
+            'pickTime': false
+        });
+        $('#conversation-finder').on("change.dp", function(e) {
+            if(e && e.date) {
+                var date = ('0' + (e.date.month()+1)).slice(-2) + '/' + ('0' + e.date.date()).slice(-2) + '/' + e.date.year();
+                $("#conversationModal").modal({'show':true, 'remote':'messages/conversation?day='+date});
+            }
+        });
+    });
+    </script>
+    </div>
 </div>
 
 <div class="page-header">
@@ -103,6 +142,18 @@ $(function() {
         </div>
 
         <div class="form-group">
+            <div class="col-md-4">
+                <label>{{ form.text_contains.label_tag }}</label>
+                {{ form.text_contains }}
+            </div>
+
+            <div class="col-md-4">
+                <label>{{ form.text_not_contain.label_tag }}</label>
+                {{ form.text_not_contain }}
+            </div>
+        </div>
+
+        <div class="form-group">
             <div class="col-md-5">
                 <label class="checkbox-inline">
                     {{ form.random }} {{ form.random.label_tag }}
@@ -112,6 +163,7 @@ $(function() {
                 </label>
             </div>
         </div>
+
         {% for hidden in form.hidden_fields %}
             {{ hidden }}
         {% endfor %}
