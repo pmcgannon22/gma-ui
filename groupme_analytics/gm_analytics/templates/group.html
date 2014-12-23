@@ -46,45 +46,6 @@ var group_id = {{ group_info.id }};
     <div id="group-photo" class="col-md-8">
       <img src="{{ group_info.image_url|default_if_none:"http://www.bapa.org/uploads/Image/GroupMe_logo_lockup_horizontal.jpg" }}">
     </div>
-<!--
-    <div class="members col-md-4">
-      <h4>Members ({{ group_info.members|length }})</h4>
-      <h6><em>total msgs | likes rec/given | likes/msg | rec/given ratio</em></h6>
-        <div class="list-group">
-        {% for member in group_info.members %}
-          <span data-uid="{{ member.user_id }}" class="list-group-item">
-    	  <h6>{{ member.nickname }}</h6>
-    	     <span class="list-group-item-text">
-	        {% with total=group.analysis.msgs_per|get_item:member.user_id received=group.analysis.likes_rec|get_item:member.user_id %}
-    	            <small class="total-messages">{{ total }} | </small>
-    	            <small>{{ received }}/{{ group.analysis.likes_give|get_item:member.user_id }} | </small>
-		    <small>{{ received|divide:total|floatformat:3 }} | </small>
-    	            <small>{{ group.analysis.ratio|get_item:member.user_id|floatformat:3}}</small>
-            <small>{{ group.analysis.prank|get_item:member.user_id }}</small>
-		{% endwith %}
-            </span>
-            <div class="user-sparkcharts" id="user-sparkcharts-{{ member.user_id }}">
-                <hr />
-                <small><em>30-day trends</em></small>
-                <div>
-                    <div class="sparkchart-wrap">
-                        <small style="font-size: 70%;">Likes</small>
-                        <div class="sparkchart" id="spark-likes-{{ member.user_id }}"></div>
-                    </div>
-
-                    <div class="sparkchart-wrap">
-                        <small style="font-size: 70%;">Messages</small>
-                        <div class="sparkchart" id="spark-messages-{{ member.user_id }}"></div>
-                    </div>
-                </div>
-            </div>
-
-         </span>
-         {% endfor %}
-        </div>
-    </div>
-    {{ group_info }}
-    -->
 
     <div class="group-preview col-md-4">
 

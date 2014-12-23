@@ -2,7 +2,7 @@
 
 d3.json("/group/" + group_id + "/users", function(error, group) {
 
-    group.sort(function(a,b) { return d3.ascending(a.nickname, b.nickname); });
+    group.sort(function(a,b) { return d3.ascending(a.nickname, b.nickname); }).forEach(function(d,i) { d.index = i; });
     var ROWS = 5;
     var WIDTH = 232;
 
@@ -27,33 +27,32 @@ d3.json("/group/" + group_id + "/users", function(error, group) {
             else
                 return "/static/img/question-mark.jpg";
         })
-        .style("width" , "80px").style("height", "80px")
-        .on("click", function(d, i) {
-            var currentRow = Math.floor(i / ROWS);
+        .style("width" , "80px").style("height", "80px");
+
+
+        overview.on("click", function(d, i) {
+            var currentRow = Math.floor(d.index / ROWS);
             var clicked = d;
             var active = d3.select(this).classed("active");
             d3.selectAll(".user-sparkcharts").style("display", "none");
             d3.select("#user-sparkcharts-" + d.user_id).style("display", active ? "none":"inline");
             d3.select(this).classed("active", !active);
-            var slide = function(d2, i2) {
-                var index  = group.indexOf(clicked);
-                var curIndex  = group.indexOf(d2);
-                if(!active && curIndex > index && Math.floor(curIndex/ROWS) === currentRow) {
-                    if((curIndex+1) % ROWS === 0) {
-
+            var index = d.index;
+            overview.transition().duration(350).style("left", function(d2, i2) {
+                if(!active && i2 > index && Math.floor(i2/ROWS) === currentRow) {
+                    if((i2+1) % ROWS === 0) {
                         return ROWS * WIDTH + "px";
                     }
                     return left(null, i2 + 1);
-                } else if(!active && (index+1) % ROWS == 0 && Math.floor(curIndex/ROWS) === currentRow) {
-                    if((curIndex-1) < 0 || curIndex % ROWS === 0) {
+                } else if(!active && (index+1) % ROWS == 0 && Math.floor(i2/ROWS) === currentRow) {
+                    if((i2-1) < 0 || i2 % ROWS === 0) {
                         return -1 * WIDTH + "px";
                     }
-                    return left(null, curIndex - 1);
+                    return left(null, i2 - 1);
                 } else {
-                    return left(null, curIndex);
+                    return left(null, i2);
                 }
-            };
-            overview.transition().duration(500).style("left", slide);
+            });
         });
 
     var user_text = overview.append("div").attr("class", "user-text pull-left");
@@ -77,6 +76,7 @@ d3.json("/group/" + group_id + "/users", function(error, group) {
                 '<div class="sparkchart" id="spark-messages-' + d.user_id + '"></div></div></div>';
             });
 
+
     function reSort(field) {
         function sort_func(a, b) {
             if(field != 'nickname')
@@ -84,19 +84,9 @@ d3.json("/group/" + group_id + "/users", function(error, group) {
                 else
                     return d3.ascending(a[field], b[field]);
         }
-
-
-        d3.selectAll(".user-info").sort(sort_func)
-            .transition().duration(750).style("top", top).style("left", left);
-        group.sort(sort_func);
+        group.sort(sort_func).forEach(function(d,i) { d.index = i; });
+        overview.sort(sort_func).transition().duration(500).style("top", top).style("left", left);
     }
-
-    /*
-    setTimeout(function() { reSort('prank'); }, 5000);
-    setTimeout(function() { reSort('ratio'); }, 10000);
-    setTimeout(function() { reSort('msg_perc'); }, 15000);
-    setTimeout(function() { reSort('likes_rec'); }, 20000);
-    */
 
     group.forEach(function(u) {
         renderSparkline(u.user_id);
