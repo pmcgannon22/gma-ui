@@ -216,6 +216,28 @@ body > .container {
     stroke-width: 0.5px;
 }
 
+
+.single-user {
+    text-align: center;
+    padding: 0 40px;
+}
+
+.single-user img {
+    width: 135px;
+    height: 135px;
+}
+
+.single-basics span {
+    margin-right: 15px;
+    font-size: 1.2em;
+}
+
+.single-user .pull-left, .single-user .pull-right {
+    margin-top: 20px;
+    text-align: left;
+    position: relative;
+}
+
 /*
 Messages Page
 */

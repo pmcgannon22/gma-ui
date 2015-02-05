@@ -4,7 +4,8 @@ from django.shortcuts import render, render_to_response
 from django.template import RequestContext
 from django.core.cache import cache
 from django.conf import settings
-from libs.groupme_tools.groupme_fetch import get_user_access, get_groups, msg_concurrent, get_group
+from django.db.models import Count
+from libs.groupme_tools.groupme_fetch import get_user_access, get_groups, msg_concurrent, get_group, messages
 from utils import analysis
 from models import Group, Message, GroupAnalysis
 from forms import LoginForm, MessageForm
@@ -14,6 +15,7 @@ from networkx.readwrite import json_graph
 
 from datetime import datetime, timedelta, date
 from operator import itemgetter
+from itertools import chain
 import json
 import string
 import re
@@ -151,8 +153,7 @@ def group(request, id):
                         img=get_attachment(msg[u'attachments']),
                         likes=msg[u'favorited_by'],
                         n_likes=len(msg[u'favorited_by'])
-                        ) for msg in msg_concurrent(request.session['token'], id, after_id=after_id)]
-
+                        ) for msg in msg_concurrent(request.session['token'], id, after_id=after_id, n_workers=(int(group_info[u'messages'][u'count'])/10 + 1))]
         group.analysis = analysis(request, msgs, group_info)
 
     except Group.DoesNotExist:
@@ -164,7 +165,8 @@ def group(request, id):
                 img=get_attachment(msg[u'attachments']),
                 likes=msg[u'favorited_by'],
                 n_likes=len(msg[u'favorited_by'])
-                ) for msg in msg_concurrent(request.session['token'], id, n_workers=(group_info[u'messages'][u'count']/50 + 1))]
+                ) for msg in msg_concurrent(request.session['token'], id, n_workers=(int(group_info[u'messages'][u'count'])/10 + 1))]
+
         group = Group(id=id, analysis=analysis(request, msgs, group_info))
         def save_msg(m):
             m.group = group
@@ -286,9 +288,18 @@ def get_names_history(request, id):
 def get_users(request, id):
     group_info = get_group(request.session['token'], id)
     users = []
+    member_map = {member[u'user_id']: member[u'nickname'] for member in group_info[u'members']}
     group = Group.objects.get(id=id)
     for member in group_info[u'members']:
         uid = member['user_id']
+        try: 
+            most_liked = Message.objects.filter(group=id, author=uid).order_by('-n_likes')[0]
+        except IndexError:
+            most_liked = None
+        likers = Message.objects.filter(group=id, author=uid, n_likes__gt=0).values('likes')
+
+        high_likers = Counter(list(chain(*[msg['likes'] for msg in likers]))).most_common(3)
+
         users.append({
             'user_id': uid,
             'nickname': member['nickname'],
@@ -298,7 +309,13 @@ def get_users(request, id):
             'likes_rec': group.analysis.likes_rec[uid],
             'likes_give': group.analysis.likes_give[uid],
             'ratio': group.analysis.ratio[uid],
-            'prank': group.analysis.prank[uid]
+            'prank': group.analysis.prank[uid],
+            'most_liked': {
+                'text': most_liked.text,
+                'created': most_liked.created.strftime("%I:%M, %m/%d/%Y"),
+                'n_likes': most_liked.n_likes
+            } if most_liked else None,
+            'highest_likers': [(member_map[unicode(n[0])], n[1]) for n in high_likers]
         })
 
     return HttpResponse(json.dumps(users), content_type="text/json")

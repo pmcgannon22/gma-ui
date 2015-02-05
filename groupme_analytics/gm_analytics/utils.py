@@ -6,6 +6,7 @@ from libs.groupme_tools.groupme_fetch import get_user_access, get_groups, messag
 from models import GroupAnalysis
 from collections import Counter
 from datetime import datetime, timedelta
+from django.db.models import Max, Avg, Count
 
 def analysis(request, msgs, group_info):
     members = group_info[u'members']
